@@ -1,0 +1,3214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1e3c72">
+  <meta name="description" content="Ayanaca Johnson editable professional resume with PDF QR sharing.">
+  <title>Ayanaca Johnson · Microsoft Style Resume Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --ms-blue: #1e3c72;
+      --ms-blue-dark: #0f2b4f;
+      --ms-blue-soft: #eef4ff;
+      --ink: #111827;
+      --text: #334155;
+      --muted: #64748b;
+      --line: #cbd5e1;
+      --surface: #ffffff;
+      --page-bg: #e9edf5;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --focus: #fef3c7;
+      --shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --font: 'Inter', 'Segoe UI', Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f8fafc 0%, var(--page-bg) 100%);
+      font-family: var(--font);
+      color: var(--ink);
+      padding: 0;
+    }
+
+    .app-shell { max-width: 1220px; margin: 0 auto; padding: 1rem; }
+
+    .top-command-bar {
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(18px);
+      border: 1px solid #dde5f0;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      padding: .85rem;
+      margin-bottom: 1rem;
+    }
+
+    .bar-top { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: .75rem; }
+    .brand-lockup { display: flex; align-items: center; gap: .65rem; min-width: 220px; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--ms-blue), #2563eb);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(30, 60, 114, .25);
+    }
+    .brand-title { font-size: .9rem; font-weight: 800; line-height: 1.15; }
+    .brand-subtitle { font-size: .72rem; color: var(--muted); font-weight: 600; }
+
+    .status-pill {
+      font-size: .74rem; font-weight: 700; color: #14532d;
+      background: #dcfce7; border: 1px solid #86efac;
+      padding: .38rem .65rem; border-radius: 999px; white-space: nowrap;
+    }
+
+    .toolbar { display: grid; grid-template-columns: 1fr auto; gap: .75rem; align-items: center; }
+    .tool-group { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+    .tool-group.actions-primary { justify-content: flex-start; }
+    .tool-group.actions-secondary { justify-content: flex-end; }
+
+    .btn, select {
+      min-height: 40px;
+      border-radius: 10px;
+      border: 1px solid #d6deea;
+      background: #fff;
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: .82rem;
+      font-weight: 750;
+      padding: .5rem .8rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      cursor: pointer;
+      user-select: none;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .btn:hover, select:hover { transform: translateY(-1px); border-color: var(--ms-blue); box-shadow: 0 8px 18px rgba(30, 60, 114, .12); }
+    .btn:focus-visible, select:focus-visible, [contenteditable="true"]:focus-visible { outline: 3px solid rgba(37,99,235,.25); outline-offset: 2px; }
+    .btn-primary { background: var(--ms-blue); border-color: var(--ms-blue); color: #fff; }
+    .btn-primary:hover { background: var(--ms-blue-dark); }
+    .btn-soft { background: var(--ms-blue-soft); color: var(--ms-blue); border-color: #bfd1f5; }
+    .btn-danger { color: var(--danger); border-color: #fecaca; background: #fff; }
+    .btn-mini { min-height: 30px; padding: .28rem .55rem; font-size: .72rem; border-radius: 999px; }
+
+    .document-wrap { display: flex; justify-content: center; }
+    .resume-card {
+      width: min(100%, 8.5in);
+      background: var(--surface);
+      min-height: 11in;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+    .resume-content { padding: .68in; }
+    .resume-body { color: var(--text); line-height: 1.48; }
+    .resume-header { text-align: center; border-bottom: 2px solid var(--ms-blue); padding-bottom: .85rem; margin-bottom: 1.05rem; }
+    .name-title h1 { color: #0f172a; font-size: 2rem; font-weight: 800; letter-spacing: -.03em; margin-bottom: .35rem; }
+    .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem 1rem; font-size: .78rem; color: #475569; }
+    .contact-info span { display: inline-flex; align-items: center; gap: .3rem; }
+    .contact-info i { color: var(--ms-blue); width: 1rem; }
+
+    .section { margin-bottom: 1.05rem; }
+    .section-title {
+      display: inline-block;
+      color: var(--ms-blue);
+      font-size: .92rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border-bottom: 1.5px solid var(--line);
+      padding-bottom: .24rem;
+      margin-bottom: .48rem;
+    }
+    .summary-text, .education-text { font-size: .84rem; color: var(--text); }
+    .skills-grid { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: .15rem; }
+    .skill-chip {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #f1f5f9; border: 1px solid #e2e8f0;
+      padding: .22rem .38rem .22rem .68rem; border-radius: 999px;
+      color: var(--ms-blue); font-size: .77rem; font-weight: 650;
+    }
+    .chip-text { min-width: 20px; }
+
+    .certs-list { list-style: none; padding-left: 0; display: grid; gap: .16rem; }
+    .cert-row { display: flex; align-items: flex-start; gap: .4rem; font-size: .82rem; color: var(--text); }
+    .cert-row::before { content: '▹'; color: var(--ms-blue); font-weight: 800; margin-top: .05rem; }
+    .cert-text { flex: 1; min-width: 0; }
+
+    .exp-item { margin-bottom: .8rem; }
+    .exp-header { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-bottom: .08rem; }
+    .exp-title { font-weight: 800; color: #0f172a; font-size: .88rem; }
+    .exp-date { color: var(--muted); font-weight: 650; font-size: .75rem; white-space: nowrap; }
+    .exp-company { display: inline-block; font-weight: 700; color: #475569; font-size: .79rem; margin-bottom: .26rem; }
+    .exp-bullets { margin: .18rem 0 .1rem 1.05rem; padding-left: 0; display: grid; gap: .18rem; }
+    .exp-bullets li { color: var(--text); font-size: .8rem; line-height: 1.42; padding-left: .1rem; }
+    .bullet-row { display: flex; align-items: flex-start; gap: .3rem; }
+    .bullet-text { flex: 1; min-width: 0; }
+
+    .inline-actions { margin-top: .35rem; }
+    .delete-icon {
+      width: 28px; min-width: 28px; height: 28px;
+      padding: 0; border-radius: 999px;
+      color: var(--danger); border-color: transparent; background: transparent;
+      opacity: .62;
+    }
+    .delete-icon:hover { opacity: 1; background: var(--danger-soft); border-color: #fecaca; box-shadow: none; transform: none; }
+
+    [contenteditable="true"] { border-radius: 5px; padding: .04rem .12rem; cursor: text; transition: background .12s ease, box-shadow .12s ease; }
+    [contenteditable="true"]:hover { background: var(--focus); }
+    [contenteditable="true"]:focus { background: #fffbeb; outline: 1px solid var(--ms-blue); }
+
+    .share-footer {
+      margin-top: 1.25rem; padding-top: .85rem; border-top: 1px solid #e2e8f0;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem;
+    }
+    .qr-wrapper { display: flex; align-items: center; gap: .65rem; }
+    .qr-wrapper span { font-size: .72rem; color: var(--muted); font-weight: 700; }
+    .share-buttons { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+
+
+    /* Premium Modern Sidebar - white sidebar with real image upload */
+    .template-modern {
+      position: relative;
+      background: #ffffff;
+      color: #1f2937;
+      font-family: var(--font);
+      margin: -.68in;
+      padding: .42in .48in .48in;
+      min-height: 10in;
+      overflow: hidden;
+    }
+    .template-modern::before {
+      content: '';
+      position: absolute;
+      left: .48in;
+      right: .48in;
+      top: .38in;
+      height: .58in;
+      background: #ded8d5;
+      z-index: 0;
+    }
+    .template-modern .modern-top {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 2.85in 1fr;
+      gap: .42in;
+      align-items: end;
+      margin-bottom: .36in;
+    }
+    .template-modern .profile-photo-card {
+      width: 2.32in;
+      height: 2.03in;
+      border-radius: 28px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #4b5563, #111827);
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, .16);
+      margin-left: .28in;
+      position: relative;
+      display: grid;
+      place-items: center;
+      color: #fff;
+    }
+    .template-modern .profile-photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover !important;
+      display: block;
+    }
+    .template-modern .profile-photo-placeholder {
+      display: grid;
+      place-items: center;
+      gap: .35rem;
+      text-align: center;
+      padding: .7rem;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 25% 18%, rgba(255,255,255,.18), transparent 30%), linear-gradient(135deg, #6b7280, #111827);
+    }
+    .template-modern .profile-photo-placeholder strong {
+      font-size: 1.85rem;
+      letter-spacing: .14em;
+      font-weight: 800;
+    }
+    .template-modern .profile-photo-placeholder span {
+      font-size: .65rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .84;
+    }
+    .template-modern .photo-actions {
+      position: absolute;
+      left: .5rem;
+      right: .5rem;
+      bottom: .5rem;
+      display: flex;
+      justify-content: center;
+      gap: .35rem;
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+    .template-modern .profile-photo-card:hover .photo-actions,
+    .template-modern .profile-photo-card:focus-within .photo-actions { opacity: 1; }
+    .template-modern .photo-upload-label,
+    .template-modern .photo-remove-btn {
+      border: 1px solid rgba(255,255,255,.45);
+      background: rgba(17,24,39,.72);
+      color: #fff;
+      border-radius: 999px;
+      padding: .28rem .5rem;
+      font-size: .64rem;
+      font-weight: 800;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+    }
+    .template-modern .photo-remove-btn { display: none; }
+    .template-modern.has-photo .photo-remove-btn { display: inline-flex; }
+    .template-modern .photo-upload-input { display: none; }
+    .template-modern .modern-heading {
+      position: relative;
+      z-index: 1;
+      padding-bottom: .16in;
+    }
+    .template-modern .name-title h1 {
+      font-size: 2rem;
+      line-height: 1;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #24282c;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+    }
+    .template-modern .headline {
+      display: block;
+      margin-top: .22rem;
+      font-size: .98rem;
+      letter-spacing: .13em;
+      color: #2f3439;
+      font-weight: 500;
+    }
+    .template-modern .modern-layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 2.75in 1fr;
+      gap: .42in;
+      align-items: start;
+    }
+    .template-modern .modern-sidebar {
+      border: 1.7px solid #111827;
+      border-radius: 34px;
+      padding: .92rem .85rem 1rem;
+      background: #ffffff;
+      color: #111827;
+      min-height: 7.25in;
+    }
+    .template-modern .modern-main {
+      background: #ffffff;
+      padding-top: .08rem;
+    }
+    .template-modern .modern-sidebar .section,
+    .template-modern .modern-main .section { margin-bottom: 1.05rem; }
+    .template-modern .modern-sidebar .section-title {
+      display: inline-block;
+      color: #000000;
+      border-bottom: 1.5px solid #111827;
+      font-size: 1.06rem;
+      letter-spacing: -.03em;
+      text-transform: none;
+      font-weight: 900;
+      padding-bottom: .3rem;
+      margin-bottom: .62rem;
+    }
+    .template-modern .modern-main .section-title {
+      display: block;
+      width: 100%;
+      color: #2f3439;
+      border-bottom: 1.4px solid #2f3439;
+      font-size: 1.02rem;
+      letter-spacing: -.02em;
+      text-transform: none;
+      font-weight: 500;
+      padding-bottom: .28rem;
+      margin-bottom: .58rem;
+    }
+    .template-modern .modern-sidebar .summary-text {
+      color: #111827;
+      font-size: .82rem;
+      line-height: 1.55;
+      text-align: justify;
+    }
+    .template-modern .modern-main .education-text,
+    .template-modern .modern-main .exp-bullets li {
+      font-size: .82rem;
+      line-height: 1.48;
+      color: #2f3439;
+    }
+    .template-modern .contact-panel {
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .template-modern .contact-list {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      gap: .63rem;
+    }
+    .template-modern .contact-list li {
+      color: #111827;
+      font-size: .83rem;
+      font-weight: 500;
+      align-items: center;
+      display: flex;
+      gap: .6rem;
+    }
+    .template-modern .contact-list i {
+      color: #000000;
+      width: 1.1rem;
+      min-width: 1.1rem;
+      font-size: .9rem;
+      margin-top: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+    .template-modern .skills-grid,
+    .template-modern .certs-list {
+      display: grid;
+      gap: .45rem;
+      padding-left: .18rem;
+    }
+    .template-modern .skill-chip,
+    .template-modern .cert-row {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+      color: #111827;
+      font-size: .82rem;
+      font-weight: 500;
+    }
+    .template-modern .skill-chip::before {
+      content: '•';
+      color: #000;
+      font-weight: 800;
+      margin-right: .28rem;
+    }
+    .template-modern .cert-row::before {
+      content: '•';
+      color: #000;
+      font-weight: 800;
+    }
+    .template-modern .exp-item {
+      margin-bottom: 1rem;
+      padding-bottom: .45rem;
+    }
+    .template-modern .exp-title {
+      font-size: .9rem;
+      color: #202428;
+      font-weight: 900;
+    }
+    .template-modern .exp-date {
+      color: #202428;
+      font-size: .8rem;
+      letter-spacing: .08em;
+      font-weight: 500;
+    }
+    .template-modern .exp-company {
+      color: #2f3439;
+      font-size: .8rem;
+      letter-spacing: .05em;
+      font-weight: 800;
+    }
+    .template-modern .exp-bullets {
+      margin-left: 0;
+      list-style: none;
+      gap: .22rem;
+    }
+    .template-modern .exp-bullets li { list-style: none; }
+    .template-modern .bullet-row { gap: .35rem; }
+    .template-modern .bullet-row::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      background: #111827;
+      border-radius: 50%;
+      margin-top: .55rem;
+      flex: 0 0 4px;
+    }
+    .template-modern .inline-actions .btn-soft {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+      color: #1f2937;
+    }
+
+
+    /* Minimal Clean Pro - ATS-first editorial layout */
+    .template-minimal {
+      background: #ffffff;
+      color: #202124;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      line-height: 1.42;
+      letter-spacing: 0;
+    }
+    .template-minimal .resume-header {
+      text-align: left;
+      border-bottom: 1.6px solid #202124;
+      padding-bottom: .58rem;
+      margin-bottom: .85rem;
+    }
+    .template-minimal .name-title h1 {
+      font-size: 1.72rem;
+      line-height: 1.05;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #111827;
+      font-weight: 900;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    }
+    .template-minimal .headline {
+      display: block;
+      margin-top: .22rem;
+      color: #374151;
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .template-minimal .contact-info {
+      justify-content: flex-start;
+      gap: .22rem .7rem;
+      margin-top: .42rem;
+      font-size: .72rem;
+      color: #374151;
+      font-weight: 600;
+    }
+    .template-minimal .contact-info span { gap: .25rem; }
+    .template-minimal .contact-info i {
+      color: #111827;
+      width: .82rem;
+      font-size: .72rem;
+    }
+    .template-minimal .section {
+      margin-bottom: .78rem;
+      break-inside: avoid;
+    }
+    .template-minimal .section-title {
+      display: block;
+      width: 100%;
+      color: #111827;
+      border-bottom: 1px solid #9ca3af;
+      font-size: .76rem;
+      line-height: 1.2;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 900;
+      padding-bottom: .2rem;
+      margin-bottom: .38rem;
+    }
+    .template-minimal .summary-text,
+    .template-minimal .education-text {
+      font-size: .77rem;
+      line-height: 1.45;
+      color: #2f343b;
+    }
+    .template-minimal .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .24rem .7rem;
+      margin-top: .12rem;
+    }
+    .template-minimal .skill-chip {
+      display: flex;
+      align-items: flex-start;
+      gap: .28rem;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+      color: #2f343b;
+      font-size: .74rem;
+      font-weight: 600;
+      line-height: 1.34;
+    }
+    .template-minimal .skill-chip::before {
+      content: '•';
+      color: #111827;
+      font-weight: 900;
+      line-height: 1.2;
+      flex: 0 0 auto;
+    }
+    .template-minimal .certs-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .2rem;
+      list-style: none;
+      padding: 0;
+    }
+    .template-minimal .cert-row {
+      display: flex;
+      align-items: flex-start;
+      gap: .3rem;
+      color: #2f343b;
+      font-size: .75rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .template-minimal .cert-row::before {
+      content: '•';
+      color: #111827;
+      font-weight: 900;
+      margin-top: 0;
+    }
+    .template-minimal .exp-item {
+      margin-bottom: .62rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid #eef0f3;
+      break-inside: avoid;
+    }
+    .template-minimal .exp-item:last-of-type { border-bottom: 0; }
+    .template-minimal .exp-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .7rem;
+      align-items: baseline;
+      margin-bottom: .06rem;
+    }
+    .template-minimal .exp-title {
+      color: #111827;
+      font-size: .8rem;
+      font-weight: 900;
+      line-height: 1.25;
+      text-transform: none;
+    }
+    .template-minimal .exp-date {
+      color: #4b5563;
+      font-size: .69rem;
+      font-weight: 800;
+      white-space: nowrap;
+      letter-spacing: .02em;
+    }
+    .template-minimal .exp-company {
+      color: #374151;
+      display: inline-block;
+      font-size: .73rem;
+      font-weight: 800;
+      margin-bottom: .15rem;
+      line-height: 1.25;
+    }
+    .template-minimal .exp-bullets {
+      margin: .18rem 0 0 .9rem;
+      display: grid;
+      gap: .12rem;
+      padding-left: 0;
+    }
+    .template-minimal .exp-bullets li {
+      color: #2f343b;
+      font-size: .73rem;
+      line-height: 1.34;
+    }
+    .template-minimal .bullet-row { gap: .24rem; }
+    .template-minimal .inline-actions { margin-top: .28rem; }
+    .template-minimal .btn-mini {
+      min-height: 27px;
+      padding: .22rem .48rem;
+      font-size: .68rem;
+    }
+    .template-minimal .delete-icon {
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      opacity: .46;
+    }
+    .template-minimal .delete-icon:hover { opacity: 1; }
+    .template-minimal [contenteditable="true"]:hover { background: #fef3c7; }
+    .template-minimal [contenteditable="true"]:focus {
+      background: #fff7d6;
+      outline: 1px solid #111827;
+    }
+
+
+    /* v10 tweak: single-line bullet spacing */
+    .exp-bullets {
+      gap: 0 !important;
+      line-height: 1.15 !important;
+    }
+    .exp-bullets li {
+      margin-bottom: 0 !important;
+      line-height: 1.15 !important;
+    }
+    .bullet-row {
+      line-height: 1.15 !important;
+      align-items: flex-start;
+    }
+    .bullet-text {
+      line-height: 1.15 !important;
+    }
+    .template-minimal .exp-bullets {
+      gap: 0 !important;
+      margin-top: .12rem !important;
+    }
+    .template-minimal .exp-bullets li,
+    .template-minimal .bullet-text {
+      line-height: 1.15 !important;
+    }
+    .template-modern .exp-bullets {
+      gap: 0 !important;
+    }
+    .template-modern .exp-bullets li,
+    .template-modern .bullet-text {
+      line-height: 1.15 !important;
+    }
+.modal { position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(15,23,42,.45); backdrop-filter: blur(8px); }
+    .modal.show { display: flex; }
+    .modal-card { width: min(94vw, 470px); background: white; border-radius: 22px; box-shadow: 0 22px 60px rgba(15,23,42,.28); padding: 1.25rem; }
+    .modal-card h2 { color: var(--ms-blue); font-size: 1.1rem; margin-bottom: .55rem; }
+    .modal-card p { color: var(--muted); font-size: .85rem; margin-bottom: .9rem; }
+    .modal-card input, .modal-card textarea {
+      width: 100%; border: 1px solid #d6deea; border-radius: 12px; padding: .75rem; margin-bottom: .65rem; font-family: var(--font); font-size: .9rem;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: .55rem; flex-wrap: wrap; margin-top: .35rem; }
+    .qr-large { display: flex; justify-content: center; margin: 1rem 0; }
+    .pdf-link-preview { word-break: break-all; background: #f8fafc; border: 1px dashed #cbd5e1; padding: .6rem; border-radius: 12px; font-size: .78rem; color: #334155; }
+
+    .toast-msg { position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; z-index: 1001; background: #0f172a; color: #fff; border-radius: 999px; padding: .7rem 1rem; font-size: .8rem; font-weight: 700; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 12px 28px rgba(15,23,42,.22); }
+    .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 850px) {
+      .app-shell { padding: .6rem; }
+      .toolbar { grid-template-columns: 1fr; }
+      .tool-group, .tool-group.actions-secondary { justify-content: stretch; }
+      .btn, select { flex: 1 1 145px; }
+      .bar-top { align-items: flex-start; }
+      .resume-content { padding: 1.2rem; }
+      .name-title h1 { font-size: 1.45rem; }
+      .contact-info { font-size: .7rem; }
+      .exp-header { flex-direction: column; gap: .06rem; }
+      .exp-date { white-space: normal; }
+      .share-footer { flex-direction: column; align-items: stretch; }
+      .share-buttons { justify-content: stretch; }
+    }
+    @media (max-width: 480px) {
+      .brand-lockup { min-width: 0; }
+      .status-pill { display: none; }
+      .resume-card { border-radius: 8px; }
+      .top-command-bar { border-radius: 0 0 14px 14px; }
+      .btn, select { flex-basis: 100%; }
+    }
+    @media print {
+      @page { size: letter; margin: .45in; }
+      body { background: white; }
+      .app-shell { padding: 0; max-width: none; }
+      .top-command-bar, .share-footer, .inline-actions, .delete-icon, .modal, .toast-msg { display: none !important; }
+      .document-wrap { display: block; }
+      .resume-card { width: 100%; min-height: auto; box-shadow: none; border: none; border-radius: 0; }
+      .resume-content { padding: 0; }
+      [contenteditable="true"] { background: transparent !important; outline: none !important; padding: 0; }
+      .skill-chip { border: none; padding: .12rem .5rem; }
+      .cert-row, .bullet-row { display: block; }
+    }
+  
+    /* v25 final mobile fix: Premium Modern Sidebar no-overflow single column */
+    @media (max-width: 700px) {
+      .resume-content {
+        padding: .55rem !important;
+        overflow: hidden !important;
+      }
+
+      .template-modern {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: .65rem !important;
+        display: block !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+      }
+
+      .template-modern::before {
+        left: .65rem !important;
+        right: .65rem !important;
+        top: .75rem !important;
+        height: 3rem !important;
+        width: auto !important;
+      }
+
+      .template-modern .modern-top,
+      .template-modern .modern-layout {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .72rem !important;
+        overflow: visible !important;
+      }
+
+      .template-modern .modern-top {
+        align-items: center !important;
+        margin-bottom: .78rem !important;
+      }
+
+      .template-modern .profile-photo-card {
+        width: min(82vw, 2.42in) !important;
+        height: min(94vw, 2.65in) !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        flex: none !important;
+        grid-column: 1 / -1 !important;
+      }
+
+      .template-modern .modern-heading {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        text-align: center !important;
+        padding: 0 .1rem !important;
+        grid-column: 1 / -1 !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      .template-modern .name-title h1 {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: clamp(1.15rem, 6vw, 1.55rem) !important;
+        line-height: 1.08 !important;
+        letter-spacing: .04em !important;
+        text-align: center !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+      }
+
+      .template-modern .headline {
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: center !important;
+        font-size: clamp(.74rem, 3.5vw, .88rem) !important;
+        line-height: 1.25 !important;
+        letter-spacing: .08em !important;
+        white-space: normal !important;
+      }
+
+      .template-modern .modern-sidebar,
+      .template-modern .modern-main {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        grid-column: 1 / -1 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
+
+      .template-modern .modern-sidebar {
+        border-radius: 22px !important;
+        padding: .72rem !important;
+      }
+
+      .template-modern .modern-main {
+        padding: 0 !important;
+      }
+
+      .template-modern .section {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin-bottom: .78rem !important;
+        overflow: hidden !important;
+      }
+
+      .template-modern .section-title {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: .82rem !important;
+        line-height: 1.2 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      .template-modern .summary-text {
+        text-align: left !important;
+        font-size: .77rem !important;
+        line-height: 1.38 !important;
+        word-spacing: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        hyphens: auto !important;
+      }
+
+      .template-modern .contact-list,
+      .template-modern .skills-grid,
+      .template-modern .certs-list {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .38rem !important;
+      }
+
+      .template-modern .contact-list li,
+      .template-modern .skill-chip,
+      .template-modern .cert-row {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+      }
+
+      .template-modern .skill-chip,
+      .template-modern .cert-row {
+        padding: .36rem .42rem !important;
+        border: 1px solid #eef0f3 !important;
+        border-radius: 12px !important;
+        background: #fafafa !important;
+      }
+
+      .template-modern .exp-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        margin-bottom: .72rem !important;
+        padding-bottom: .58rem !important;
+      }
+
+      .template-modern .exp-header {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .08rem !important;
+      }
+
+      .template-modern .exp-title,
+      .template-modern .exp-date,
+      .template-modern .exp-company {
+        width: 100% !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+
+      .template-modern .exp-bullets {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: .2rem 0 0 0 !important;
+        padding: 0 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .18rem !important;
+        list-style: none !important;
+      }
+
+      .template-modern .exp-bullets li {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        list-style: none !important;
+      }
+
+      .template-modern .bullet-row {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        display: grid !important;
+        grid-template-columns: 7px minmax(0, 1fr) 32px !important;
+        gap: .35rem !important;
+        align-items: start !important;
+      }
+
+      .template-modern .bullet-row::before {
+        width: 4px !important;
+        height: 4px !important;
+        margin-top: .48rem !important;
+        grid-column: 1 !important;
+      }
+
+      .template-modern .bullet-text {
+        grid-column: 2 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        font-size: .75rem !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .template-modern .delete-icon {
+        grid-column: 3 !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        height: 30px !important;
+        justify-self: end !important;
+      }
+
+      .template-modern .inline-actions .btn-soft {
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .template-modern {
+        padding: .55rem !important;
+      }
+
+      .template-modern::before {
+        left: .55rem !important;
+        right: .55rem !important;
+      }
+
+      .template-modern .profile-photo-card {
+        width: min(80vw, 2.15in) !important;
+        height: min(92vw, 2.42in) !important;
+      }
+
+      .template-modern .modern-sidebar {
+        padding: .62rem !important;
+      }
+
+      .template-modern .bullet-row {
+        grid-template-columns: 7px minmax(0, 1fr) 30px !important;
+      }
+    }
+
+  
+    /* v26: mobile delete icons flush right for more text room */
+    @media (max-width: 700px) {
+      .template-modern .skill-chip,
+      .template-modern .cert-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 34px !important;
+        align-items: start !important;
+        column-gap: .45rem !important;
+        padding: .36rem .38rem .36rem .46rem !important;
+      }
+
+      .template-modern .skill-chip::before,
+      .template-modern .cert-row::before {
+        display: none !important;
+        content: none !important;
+      }
+
+      .template-modern .chip-text,
+      .template-modern .cert-text {
+        grid-column: 1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        line-height: 1.25 !important;
+      }
+
+      .template-modern .skill-chip .delete-icon,
+      .template-modern .cert-row .delete-icon {
+        grid-column: 2 !important;
+        justify-self: end !important;
+        align-self: start !important;
+        margin: -.15rem -.18rem 0 0 !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+      }
+
+      .template-modern .bullet-row {
+        display: grid !important;
+        grid-template-columns: 7px minmax(0, 1fr) 34px !important;
+        column-gap: .35rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .template-modern .bullet-row::before {
+        grid-column: 1 !important;
+        justify-self: start !important;
+      }
+
+      .template-modern .bullet-text {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .template-modern .bullet-row .delete-icon {
+        grid-column: 3 !important;
+        justify-self: end !important;
+        align-self: start !important;
+        margin: -.18rem -.15rem 0 0 !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+      }
+
+      .template-modern .delete-icon i {
+        pointer-events: none !important;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .template-modern .skill-chip,
+      .template-modern .cert-row {
+        grid-template-columns: minmax(0, 1fr) 32px !important;
+        column-gap: .32rem !important;
+      }
+
+      .template-modern .bullet-row {
+        grid-template-columns: 6px minmax(0, 1fr) 32px !important;
+        column-gap: .28rem !important;
+      }
+
+      .template-modern .skill-chip .delete-icon,
+      .template-modern .cert-row .delete-icon,
+      .template-modern .bullet-row .delete-icon {
+        width: 30px !important;
+        min-width: 30px !important;
+        height: 30px !important;
+        margin-right: -.12rem !important;
+      }
+    }
+
+  
+    /* v27: mobile delete icons flush right across all templates */
+    @media (max-width: 700px) {
+      .template-classic .skill-chip,
+      .template-minimal .skill-chip,
+      .template-bennett .skill-chip,
+      .template-centered .skill-chip,
+      .template-lorna .skill-chip,
+      .template-realtor .skill-chip,
+      .template-classic .cert-row,
+      .template-minimal .cert-row,
+      .template-bennett .cert-row,
+      .template-centered .cert-row,
+      .template-lorna .cert-row,
+      .template-realtor .cert-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 34px !important;
+        align-items: start !important;
+        column-gap: .45rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding-right: .38rem !important;
+      }
+
+      .template-classic .skill-chip::before,
+      .template-minimal .skill-chip::before,
+      .template-bennett .skill-chip::before,
+      .template-centered .skill-chip::before,
+      .template-lorna .skill-chip::before,
+      .template-realtor .skill-chip::before,
+      .template-classic .cert-row::before,
+      .template-minimal .cert-row::before,
+      .template-bennett .cert-row::before,
+      .template-centered .cert-row::before,
+      .template-lorna .cert-row::before,
+      .template-realtor .cert-row::before {
+        display: none !important;
+        content: none !important;
+      }
+
+      .template-classic .chip-text,
+      .template-minimal .chip-text,
+      .template-bennett .chip-text,
+      .template-centered .chip-text,
+      .template-lorna .chip-text,
+      .template-realtor .chip-text,
+      .template-classic .cert-text,
+      .template-minimal .cert-text,
+      .template-bennett .cert-text,
+      .template-centered .cert-text,
+      .template-lorna .cert-text,
+      .template-realtor .cert-text {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        line-height: 1.25 !important;
+      }
+
+      .template-classic .skill-chip .delete-icon,
+      .template-minimal .skill-chip .delete-icon,
+      .template-bennett .skill-chip .delete-icon,
+      .template-centered .skill-chip .delete-icon,
+      .template-lorna .skill-chip .delete-icon,
+      .template-realtor .skill-chip .delete-icon,
+      .template-classic .cert-row .delete-icon,
+      .template-minimal .cert-row .delete-icon,
+      .template-bennett .cert-row .delete-icon,
+      .template-centered .cert-row .delete-icon,
+      .template-lorna .cert-row .delete-icon,
+      .template-realtor .cert-row .delete-icon {
+        grid-column: 2 !important;
+        justify-self: end !important;
+        align-self: start !important;
+        margin: -.15rem -.18rem 0 0 !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+      }
+
+      .template-classic .bullet-row,
+      .template-minimal .bullet-row,
+      .template-bennett .bullet-row,
+      .template-centered .bullet-row,
+      .template-lorna .bullet-row,
+      .template-realtor .bullet-row {
+        display: grid !important;
+        grid-template-columns: 7px minmax(0, 1fr) 34px !important;
+        column-gap: .35rem !important;
+        align-items: start !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      .template-classic .bullet-row::before,
+      .template-minimal .bullet-row::before,
+      .template-bennett .bullet-row::before,
+      .template-centered .bullet-row::before,
+      .template-lorna .bullet-row::before,
+      .template-realtor .bullet-row::before {
+        content: '' !important;
+        grid-column: 1 !important;
+        width: 4px !important;
+        height: 4px !important;
+        border-radius: 50% !important;
+        background: #111827 !important;
+        margin-top: .48rem !important;
+      }
+
+      .template-classic .bullet-text,
+      .template-minimal .bullet-text,
+      .template-bennett .bullet-text,
+      .template-centered .bullet-text,
+      .template-lorna .bullet-text,
+      .template-realtor .bullet-text {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .template-classic .bullet-row .delete-icon,
+      .template-minimal .bullet-row .delete-icon,
+      .template-bennett .bullet-row .delete-icon,
+      .template-centered .bullet-row .delete-icon,
+      .template-lorna .bullet-row .delete-icon,
+      .template-realtor .bullet-row .delete-icon {
+        grid-column: 3 !important;
+        justify-self: end !important;
+        align-self: start !important;
+        margin: -.18rem -.15rem 0 0 !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+      }
+
+      .template-classic .exp-bullets,
+      .template-minimal .exp-bullets,
+      .template-bennett .exp-bullets,
+      .template-centered .exp-bullets,
+      .template-lorna .exp-bullets,
+      .template-realtor .exp-bullets {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        list-style: none !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: .18rem !important;
+      }
+
+      .template-classic .exp-bullets li,
+      .template-minimal .exp-bullets li,
+      .template-bennett .exp-bullets li,
+      .template-centered .exp-bullets li,
+      .template-lorna .exp-bullets li,
+      .template-realtor .exp-bullets li {
+        list-style: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .template-classic .delete-icon i,
+      .template-minimal .delete-icon i,
+      .template-bennett .delete-icon i,
+      .template-centered .delete-icon i,
+      .template-lorna .delete-icon i,
+      .template-realtor .delete-icon i {
+        pointer-events: none !important;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .template-classic .skill-chip,
+      .template-minimal .skill-chip,
+      .template-bennett .skill-chip,
+      .template-centered .skill-chip,
+      .template-lorna .skill-chip,
+      .template-realtor .skill-chip,
+      .template-classic .cert-row,
+      .template-minimal .cert-row,
+      .template-bennett .cert-row,
+      .template-centered .cert-row,
+      .template-lorna .cert-row,
+      .template-realtor .cert-row {
+        grid-template-columns: minmax(0, 1fr) 32px !important;
+        column-gap: .32rem !important;
+      }
+
+      .template-classic .bullet-row,
+      .template-minimal .bullet-row,
+      .template-bennett .bullet-row,
+      .template-centered .bullet-row,
+      .template-lorna .bullet-row,
+      .template-realtor .bullet-row {
+        grid-template-columns: 6px minmax(0, 1fr) 32px !important;
+        column-gap: .28rem !important;
+      }
+
+      .template-classic .skill-chip .delete-icon,
+      .template-minimal .skill-chip .delete-icon,
+      .template-bennett .skill-chip .delete-icon,
+      .template-centered .skill-chip .delete-icon,
+      .template-lorna .skill-chip .delete-icon,
+      .template-realtor .skill-chip .delete-icon,
+      .template-classic .cert-row .delete-icon,
+      .template-minimal .cert-row .delete-icon,
+      .template-bennett .cert-row .delete-icon,
+      .template-centered .cert-row .delete-icon,
+      .template-lorna .cert-row .delete-icon,
+      .template-realtor .cert-row .delete-icon,
+      .template-classic .bullet-row .delete-icon,
+      .template-minimal .bullet-row .delete-icon,
+      .template-bennett .bullet-row .delete-icon,
+      .template-centered .bullet-row .delete-icon,
+      .template-lorna .bullet-row .delete-icon,
+      .template-realtor .bullet-row .delete-icon {
+        width: 30px !important;
+        min-width: 30px !important;
+        height: 30px !important;
+        margin-right: -.12rem !important;
+      }
+    }
+
+
+    @media print {
+      .top-command-bar,
+      .floating-up-arrow,
+      .toast-msg,
+      .modal,
+      .inline-actions,
+      .delete-icon,
+      .photo-actions {
+        display: none !important;
+      }
+
+      html, body {
+        background: #ffffff !important;
+        overflow: visible !important;
+      }
+
+      .app-shell {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .document-wrap {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .resume-card {
+        width: 7.65in !important;
+        max-width: 7.65in !important;
+        min-height: auto !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        margin: 0 auto !important;
+      }
+
+      .resume-content {
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+    }
+
+
+    @media print {
+      .top-command-bar,
+      .floating-up-arrow,
+      .toast-msg,
+      .modal,
+      .inline-actions,
+      .delete-icon,
+      .photo-actions {
+        display: none !important;
+      }
+
+      html, body {
+        background: #ffffff !important;
+        overflow: visible !important;
+      }
+
+      .app-shell {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .document-wrap {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .resume-card {
+        width: 7.65in !important;
+        max-width: 7.65in !important;
+        min-height: auto !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        margin: 0 auto !important;
+      }
+
+      .resume-content {
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+    }
+
+  
+    /* v30: reliable PDF export capture mode */
+    body.pdf-capture-mode {
+      background: #ffffff !important;
+    }
+
+    body.pdf-capture-mode .top-command-bar,
+    body.pdf-capture-mode .floating-up-arrow,
+    body.pdf-capture-mode .toast-msg,
+    body.pdf-capture-mode .modal,
+    body.pdf-capture-mode .inline-actions,
+    body.pdf-capture-mode .delete-icon,
+    body.pdf-capture-mode .photo-actions {
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    body.pdf-capture-mode .resume-card {
+      box-shadow: none !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      overflow: visible !important;
+      background: #ffffff !important;
+    }
+
+    body.pdf-capture-mode .resume-content,
+    body.pdf-capture-mode .resume-body {
+      overflow: visible !important;
+      background: #ffffff !important;
+    }
+
+    body.pdf-capture-mode [contenteditable="true"] {
+      background: transparent !important;
+      outline: none !important;
+      border: 0 !important;
+    }
+
+    body.pdf-capture-mode .section,
+    body.pdf-capture-mode .exp-item {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+
+    @media print {
+      .top-command-bar,
+      .floating-up-arrow,
+      .toast-msg,
+      .modal,
+      .inline-actions,
+      .delete-icon,
+      .photo-actions {
+        display: none !important;
+      }
+
+      .resume-card {
+        box-shadow: none !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+      }
+
+      [contenteditable="true"] {
+        background: transparent !important;
+        outline: none !important;
+        border: 0 !important;
+      }
+    }
+
+
+    @media (max-width: 700px) {
+      .pdf-live-modal {
+        padding: .5rem;
+      }
+
+      .pdf-live-shell {
+        border-radius: 16px;
+      }
+
+      .pdf-live-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .pdf-live-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .pdf-live-actions .btn {
+        flex: 1 1 calc(50% - .45rem);
+      }
+
+      .pdf-live-body {
+        padding: .65rem;
+      }
+    }
+
+    @media print {
+      .pdf-live-modal {
+        display: none !important;
+      }
+    }
+
+
+    @media print {
+      .top-command-bar,
+      .floating-up-arrow,
+      .toast-msg,
+      .modal,
+      .inline-actions,
+      .delete-icon,
+      .photo-actions,
+      input,
+      button {
+        display: none !important;
+      }
+    }
+
+
+  
+    /* v37: exact document PDF export stage */
+    .pdf-export-stage {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 8.5in;
+      max-width: 8.5in;
+      min-height: 11in;
+      background: #ffffff;
+      z-index: 999999;
+      opacity: 1;
+      pointer-events: none;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    .pdf-export-stage .resume-card {
+      width: 8.5in !important;
+      max-width: 8.5in !important;
+      min-height: auto !important;
+      margin: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+      background: #ffffff !important;
+    }
+
+    .pdf-export-stage .resume-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      background: #ffffff !important;
+      overflow: visible !important;
+    }
+
+    .pdf-export-stage .inline-actions,
+    .pdf-export-stage .delete-icon,
+    .pdf-export-stage .photo-actions,
+    .pdf-export-stage input,
+    .pdf-export-stage button,
+    .pdf-export-stage .share-footer,
+    .pdf-export-stage .edit-hint {
+      display: none !important;
+    }
+
+    .pdf-export-stage [contenteditable="true"] {
+      background: transparent !important;
+      outline: none !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .pdf-export-stage .section,
+    .pdf-export-stage .exp-item,
+    .pdf-export-stage .skill-chip,
+    .pdf-export-stage .cert-row {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+
+    body.pdf-export-working .top-command-bar,
+    body.pdf-export-working .floating-up-arrow,
+    body.pdf-export-working .toast-msg,
+    body.pdf-export-working .modal {
+      visibility: hidden !important;
+    }
+
+    @media print {
+      .top-command-bar,
+      .floating-up-arrow,
+      .toast-msg,
+      .modal,
+      .inline-actions,
+      .delete-icon,
+      .photo-actions,
+      input,
+      button {
+        display: none !important;
+      }
+    }
+
+  
+    /* v38: reliable exact PDF export capture */
+    .pdf-export-stage {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 8.5in !important;
+      max-width: 8.5in !important;
+      background: #ffffff !important;
+      z-index: 999999 !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+      overflow: visible !important;
+      transform: translateX(-200vw) !important;
+    }
+
+    .pdf-export-stage.capture-ready {
+      transform: translateX(0) !important;
+    }
+
+    body.pdf-export-working {
+      background: #ffffff !important;
+    }
+
+  
+    /* v40: PDF capture mode cleanup */
+    body.pdf-capture-mode {
+      background: #fff !important;
+    }
+
+    body.pdf-capture-mode .resume-card {
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+
+    body.pdf-capture-mode .top-command-bar,
+    body.pdf-capture-mode .modal,
+    body.pdf-capture-mode .delete-icon {
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+
+    body.pdf-capture-mode .inline-actions,
+    body.pdf-capture-mode .photo-actions,
+    body.pdf-capture-mode .floating-up-arrow,
+    body.pdf-capture-mode .toast-msg {
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    body.pdf-capture-mode [contenteditable="true"] {
+      background: transparent !important;
+      outline: none !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+    }
+
+  
+    /* v41: reliable PDF download/export control */
+    #downloadPdfBtn {
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: .4rem !important;
+    }
+
+    body.pdf-capture-mode {
+      background: #fff !important;
+    }
+
+    body.pdf-capture-mode .resume-card {
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+
+    body.pdf-capture-mode .top-command-bar,
+    body.pdf-capture-mode .modal,
+    body.pdf-capture-mode .delete-icon {
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+
+    body.pdf-capture-mode .inline-actions,
+    body.pdf-capture-mode .photo-actions,
+    body.pdf-capture-mode .floating-up-arrow,
+    body.pdf-capture-mode .toast-msg {
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+  
+    /* v42: hardened QR share modal */
+    .qr-status {
+      margin-top: .75rem;
+      padding: .7rem .8rem;
+      border-radius: 14px;
+      font-size: .78rem;
+      line-height: 1.35;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+    }
+
+    .qr-status.warning {
+      background: #fff7ed;
+      color: #9a3412;
+      border-color: #fed7aa;
+    }
+
+    .qr-action-row {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+      justify-content: center;
+    }
+
+    .qr-action-row .btn {
+      min-height: 36px;
+      border-radius: 999px;
+      font-size: .75rem;
+      padding: .45rem .75rem;
+    }
+
+    .qr-link-box {
+      margin-top: .75rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .45rem;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: .45rem;
+    }
+
+    .qr-link-box code {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: .72rem;
+      color: #1e293b;
+      background: transparent;
+    }
+
+    @media (max-width: 520px) {
+      .qr-link-box {
+        grid-template-columns: 1fr;
+      }
+
+      .qr-action-row .btn {
+        flex: 1 1 100%;
+      }
+    }
+
+  
+    /* v43: enhanced QR sharing */
+    #shareQrBtn {
+      min-width: 70px;
+    }
+
+    .qr-enhanced-card {
+      background: #ffffff;
+      border: 1px solid #dbe4f0;
+      border-radius: 18px;
+      padding: .9rem;
+      margin-top: .85rem;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
+    }
+
+    .qr-destination-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .38rem .65rem;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+      font-size: .76rem;
+      font-weight: 800;
+      margin-bottom: .65rem;
+    }
+
+    .qr-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .5rem;
+      margin-top: .75rem;
+    }
+
+    .qr-actions-grid .btn,
+    .qr-actions-grid a.btn {
+      width: 100%;
+      min-height: 38px;
+      border-radius: 999px;
+      font-size: .76rem;
+      text-decoration: none;
+      justify-content: center;
+    }
+
+    .qr-copy-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .45rem;
+      margin-top: .7rem;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: .45rem;
+    }
+
+    .qr-copy-row code {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: .72rem;
+      color: #1e293b;
+    }
+
+    .qr-scan-note {
+      margin-top: .65rem;
+      font-size: .74rem;
+      line-height: 1.35;
+      color: #475569;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .qr-actions-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .qr-copy-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+  
+    /* v45: button reliability polish */
+    .btn[data-bound="true"],
+    button[data-bound="true"],
+    a[data-bound="true"] {
+      touch-action: manipulation;
+    }
+
+  
+    /* v46: core toolbar button fixes */
+    #downloadPdfBtn {
+      text-decoration: none !important;
+      cursor: pointer !important;
+    }
+
+    [data-core-fixed="true"] {
+      touch-action: manipulation;
+    }
+
+  
+    /* v47: force toolbar buttons to be clickable */
+    .top-command-bar {
+      pointer-events: auto !important;
+      z-index: 5000 !important;
+    }
+
+    .top-command-bar *,
+    .toolbar *,
+    .tool-group *,
+    #saveResumeBtn,
+    #downloadPdfBtn,
+    #plainTextBtnTop,
+    #copyPdfLinkBtnTop,
+    #shareQrBtn,
+    #resetDataBtn,
+    #emailBtnTop,
+    #smsBtnTop {
+      pointer-events: auto !important;
+    }
+
+    #saveResumeBtn,
+    #downloadPdfBtn,
+    #plainTextBtnTop,
+    #copyPdfLinkBtnTop {
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 5001 !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: rgba(30, 60, 114, .18) !important;
+    }
+
+    .top-command-bar.header-hidden {
+      pointer-events: none !important;
+    }
+
+    .top-command-bar.scroll-visible,
+    .top-command-bar.at-top {
+      pointer-events: auto !important;
+    }
+
+    body:not(.pdf-capture-mode) #saveResumeBtn,
+    body:not(.pdf-capture-mode) #downloadPdfBtn,
+    body:not(.pdf-capture-mode) #plainTextBtnTop,
+    body:not(.pdf-capture-mode) #copyPdfLinkBtnTop {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-command-bar" aria-label="Resume command toolbar">
+      <div class="bar-top">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><i class="fas fa-file-word"></i></div>
+          <div>
+            <div class="brand-title">Microsoft Style Resume Editor</div>
+            <div class="brand-subtitle">Editable resume · PDF QR sharing</div>
+          </div>
+        </div>
+        <div class="status-pill" id="pdfStatus"><i class="fas fa-circle-check"></i> PDF QR ready</div>
+      </div>
+      <div class="toolbar">
+        <div class="tool-group actions-primary">
+          <select id="templateSwitcher" aria-label="Choose resume template">
+            <option value="classic">Classic Microsoft</option>
+            <option value="modern">Premium Modern Sidebar</option>
+            <option value="minimal">Minimal Clean Pro</option>
+          </select>
+          <button id="saveResumeBtn" title="Save changes to this browser" class="btn btn-primary" type="button"><i class="fas fa-save"></i> Save</button>
+          <a id="downloadPdfBtn" class="btn btn-soft" href="Ayanaca_Johnson_Resume.pdf" download="Ayanaca_Johnson_Resume.pdf" aria-label="Export PDF"><i class="fas fa-file-pdf"></i> Export PDF</a>
+          <button id="shareQrBtn" class="btn btn-soft" type="button"><i class="fas fa-qrcode"></i> QR</button>
+        </div>
+        <div class="tool-group actions-secondary">
+          <button id="emailBtnTop" class="btn" type="button"><i class="fas fa-envelope"></i> Email PDF</button>
+          <button id="plainTextBtnTop" class="btn" type="button"><i class="fas fa-file-lines"></i> Plain Text</button>
+          <button id="smsBtnTop" class="btn" type="button"><i class="fas fa-comment-sms"></i> SMS PDF</button>
+          <button id="copyPdfLinkBtnTop" class="btn" type="button"><i class="fas fa-link"></i> Copy PDF Link</button>
+          <button id="resetDataBtn" class="btn btn-danger" type="button"><i class="fas fa-rotate-left"></i> Reset</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="document-wrap">
+      <section class="resume-card" aria-label="Editable resume document">
+        <div class="resume-content" id="resumeContent"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="addModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h2 id="modalTitle">Add Item</h2>
+      <p id="modalHelp">Add a new resume item below.</p>
+      <input id="modalField1" type="text" placeholder="Main field">
+      <input id="modalField2" type="text" placeholder="Secondary field">
+      <textarea id="modalField3" rows="3" placeholder="Details"></textarea>
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn" type="button">Cancel</button>
+        <button id="modalConfirm" class="btn btn-primary" type="button">Add</button>
+      </div>
+    </div>
+  </div>
+
+
+  
+  <div id="qrModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="modal-card">
+      <h2 id="qrTitle"><i class="fas fa-qrcode"></i> Share downloadable PDF</h2>
+      <p>This QR code points only to the downloadable PDF file. After hosting, keep the PDF file in the same folder as this page.</p>
+      <div class="qr-enhanced-card">
+        <div id="qrDestinationPill" class="qr-destination-pill"><i class="fas fa-file-pdf"></i> QR opens hosted resume PDF</div>
+        <div id="hdQRCode" class="qr-large"></div>
+      <div id="pdfLinkPreview" class="pdf-link-preview"></div>
+      <div class="modal-actions">
+        <button id="copyModalPdfLink" class="btn" type="button"><i class="fas fa-copy"></i> Copy PDF Link</button>
+        <button id="closeQrModal" class="btn btn-primary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="floatingUpArrow" class="floating-up-arrow" type="button" aria-label="Back to top" title="Back to top"><i class="fas fa-arrow-up"></i></button>
+
+  <div id="toastMsg" class="toast-msg" role="status" aria-live="polite">Ready</div>
+
+<script>
+  const ORIGINAL_DATA = {
+    name: "AYANACA JOHNSON",
+    headline: "Security Professional",
+    profileImage: "",
+    location: "San Antonio, TX",
+    phone: "210-365-1402",
+    email: "us5johnsons@yahoo.com",
+    summary: "Customer-focused safety professional with 15+ years of experience in high-responsibility environments requiring vigilance, professionalism, and rapid decision-making. Proven ability to manage emergencies, de-escalate conflict, and deliver exceptional service in fast-paced, public-facing roles. Recognized for reliability, teamwork, and maintaining calm under pressure. Holds a valid passport and willing to travel extensively.",
+    sectionTitles: {
+      summary: "Professional Summary",
+      skills: "Core Skills",
+      certifications: "Certifications & Licenses",
+      experience: "Security Experience",
+      education: "Education"
+    },
+    skills: ["Passenger Safety & Emergency Response", "Conflict Resolution & De-escalation", "Customer Service Excellence", "Team Collaboration", "Regulatory Compliance", "Crisis Management", "Clear Communication", "Attention to Detail"],
+    certifications: ["Level 2, 3, & 4 Security Licenses", "Class C Commercial Driver's License (Passenger Endorsement)", "Valid Passport"],
+    experience: [
+      { title: "Security Team Lead", company: "GPI Defense -- San Antonio, TX", date: "Oct 2025 -- Present", bullets: ["Lead and supervise security personnel, ensuring operational safety and professional conduct during high-volume assignments.", "De-escalate conflicts using calm, strategic communication, reducing incident escalation rates.", "Respond to emergency situations quickly and effectively, directing team members during high-pressure incidents.", "Maintain a secure yet welcoming environment while completing detailed incident reports and ensuring compliance."] },
+      { title: "CDL Armed Driver", company: "Loomis Armored -- San Antonio, TX", date: "Mar 2025 -- Aug 2025", bullets: ["Ensured safe, armed transport of high-value assets following strict federal and corporate security regulations.", "Maintained constant situational awareness to neutralize potential risks during transit and client delivery.", "Delivered professional service to clients while conducting detailed safety inspections of armored vehicles."] },
+      { title: "Security Officer", company: "San Antonio Security Agency -- San Antonio, TX", date: "Oct 2024 -- Jan 2025", bullets: ["Monitored safety systems and maintained secure environments for commercial properties.", "De-escalated conflicts using verbal techniques and responded to incidents with rapid, appropriate force continuum.", "Collaborated with teams to ensure smooth daily operations and emergency readiness."] },
+      { title: "Lead Security Officer", company: "Blackstorm Security -- San Antonio, TX", date: "Feb 2024 -- Oct 2024", bullets: ["Provided customer-facing assistance while maintaining a visible security presence and safety protocols.", "Conducted proactive safety checks and risk assessments to identify vulnerabilities before incidents occurred."] },
+      { title: "Security Officer", company: "Inter-Con Security -- San Antonio, TX", date: "Nov 2022 -- Feb 2024", bullets: ["Assisted guests and employees professionally, ensuring access control and positive public interaction.", "Maintained secure environments and responded to security breaches with immediate corrective measures."] },
+      { title: "Driver / Messenger", company: "GardaWorld -- San Antonio, TX", date: "Aug 2021 -- May 2022", bullets: ["Provided secure transport services with uncompromising focus on safety and chain-of-custody integrity."] },
+      { title: "Shift Leader", company: "Popeye's -- San Antonio, TX", date: "Nov 2020 -- Jun 2021", bullets: ["Delivered high-quality customer service while resolving conflicts and maintaining team efficiency.", "Resolved customer concerns promptly, ensuring brand reputation and operational flow."] },
+      { title: "Security Supervisor", company: "AlliedBarton -- San Antonio, TX", date: "Jul 2015 -- Oct 2020", bullets: ["Supervised security teams and coordinated emergency drills, improving response times.", "Implemented training programs on de-escalation and regulatory adherence across multiple sites."] },
+      { title: "Security Supervisor", company: "ABM -- San Antonio, TX", date: "Dec 2013 -- Jan 2015", bullets: ["Developed site-specific safety procedures and trained staff on emergency protocols and security best practices."] },
+      { title: "Security Officer", company: "SeaWorld -- San Antonio, TX", date: "Nov 2005 -- Jan 2013", bullets: ["Assisted large volumes of guests while maintaining a safe, family-friendly environment.", "Collaborated with event security teams to manage crowd flow and incident prevention."] },
+      { title: "Correction Officer", company: "Sheriff Dept. Correction Facility -- New Orleans, LA", date: "Jan 2003 -- Sep 2005", bullets: ["Managed high-stress correctional environment, enforcing facility safety and inmate conduct regulations.", "Responded to emergencies and maintained order with strict adherence to institutional policies."] }
+    ],
+    education: "High School Diploma\nUrban League Street Academy -- New Orleans, LA"
+  };
+
+  const STORAGE_KEY = 'ayanaca_resume_microsoft_base_v3';
+  const PDF_FILENAME = 'Ayanaca_Johnson_Resume.pdf';
+  let resumeData = JSON.parse(JSON.stringify(ORIGINAL_DATA));
+  let currentTemplate = 'classic';
+  let modalMode = null;
+  let modalExpIndex = null;
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+  }
+
+  function showToast(message) {
+    const toast = $('#toastMsg');
+    toast.textContent = message;
+    toast.classList.add('show');
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(() => toast.classList.remove('show'), 2300);
+  }
+
+  function getPdfUrl() {
+    return new URL(PDF_FILENAME, window.location.href).href;
+  }
+
+  async function safeCopy(text, message = 'Copied') {
+    return copyTextReliable(text, message);
+  }
+
+  function normalizeData() {
+    resumeData.headline ||= ORIGINAL_DATA.headline || 'Security Professional';
+    resumeData.profileImage ||= '';
+    resumeData.sectionTitles ||= JSON.parse(JSON.stringify(ORIGINAL_DATA.sectionTitles));
+    resumeData.skills ||= [];
+    resumeData.certifications ||= [];
+    resumeData.experience ||= [];
+    resumeData.experience.forEach(exp => exp.bullets ||= []);
+  }
+
+
+  function syncResumeDataFromDom() {
+    syncTitlesFromDom();
+
+    const setText = (selector, setter) => {
+      const el = document.querySelector(selector);
+      if (el) setter(el.innerText.trim());
+    };
+
+    setText('#editName', value => { if (value) resumeData.name = value; });
+    setText('#editHeadline', value => { if (value) resumeData.headline = value; });
+    setText('#editPhone', value => { resumeData.phone = value; });
+    setText('#editEmail', value => { resumeData.email = value; });
+    setText('#editLocation', value => { resumeData.location = value; });
+    setText('#editSummary', value => { resumeData.summary = value; });
+    setText('#editEducation', value => { resumeData.education = value; });
+
+    const titleMap = [
+      ['#sectionTitleSummary', 'summary'],
+      ['#sectionTitleSkills', 'skills'],
+      ['#sectionTitleCerts', 'certifications'],
+      ['#sectionTitleExperience', 'experience'],
+      ['#sectionTitleEdu', 'education']
+    ];
+
+    titleMap.forEach(([selector, key]) => {
+      const el = document.querySelector(selector);
+      if (el && resumeData.sectionTitles) {
+        const value = el.innerText.trim();
+        if (value) resumeData.sectionTitles[key] = value;
+      }
+    });
+  }
+
+  function persistResumeState(showMessage = true) {
+    try {
+      syncResumeDataFromDom();
+
+      const payload = {
+        resumeData,
+        currentTemplate,
+        savedAt: new Date().toISOString(),
+        buildId: 'save-fixed-v44'
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(resumeData));
+      localStorage.setItem('resumeEditorTemplate', currentTemplate);
+      localStorage.setItem('resumeEditorBackup', JSON.stringify(payload));
+
+      if (showMessage) showToast('Saved successfully');
+      return true;
+    } catch (error) {
+      console.error('Save failed:', error);
+      if (showMessage) showToast('Save failed. Browser storage may be blocked.');
+      return false;
+    }
+  }
+
+
+  function saveToLocal(silent = false) {
+    return persistResumeState(!silent);
+  }
+
+  function loadFromLocal() {
+    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ayanaca_resume_editable_all') || localStorage.getItem('ayanaca_resume_professional');
+    if (stored) {
+      try { resumeData = JSON.parse(stored); }
+      catch (err) { resumeData = JSON.parse(JSON.stringify(ORIGINAL_DATA)); }
+    }
+    normalizeData();
+  }
+
+  function syncTitlesFromDom() {
+    const map = [
+      ['sectionTitleSummary', 'summary'], ['sectionTitleSkills', 'skills'], ['sectionTitleCerts', 'certifications'], ['sectionTitleExp', 'experience'], ['sectionTitleEdu', 'education']
+    ];
+    resumeData.sectionTitles ||= {};
+    map.forEach(([id, key]) => { const el = document.getElementById(id); if (el) resumeData.sectionTitles[key] = el.innerText.trim() || ORIGINAL_DATA.sectionTitles[key]; });
+  }
+
+  function generatePlainText() {
+    syncTitlesFromDom();
+    const lines = [];
+    lines.push(resumeData.name || '');
+    lines.push(resumeData.headline || 'Security Professional');
+    lines.push(`${resumeData.location} | ${resumeData.phone} | ${resumeData.email}`);
+    lines.push('');
+    lines.push((resumeData.sectionTitles.summary || 'Professional Summary').toUpperCase());
+    lines.push(resumeData.summary || '');
+    lines.push('');
+    lines.push((resumeData.sectionTitles.skills || 'Core Skills').toUpperCase());
+    lines.push((resumeData.skills || []).join(', '));
+    lines.push('');
+    lines.push((resumeData.sectionTitles.certifications || 'Certifications & Licenses').toUpperCase());
+    (resumeData.certifications || []).forEach(c => lines.push('• ' + c));
+    lines.push('');
+    lines.push((resumeData.sectionTitles.experience || 'Experience').toUpperCase());
+    (resumeData.experience || []).forEach(exp => {
+      lines.push(`${exp.title} | ${exp.company} | ${exp.date}`);
+      (exp.bullets || []).forEach(b => lines.push('• ' + b));
+      lines.push('');
+    });
+    lines.push((resumeData.sectionTitles.education || 'Education').toUpperCase());
+    lines.push(resumeData.education || '');
+    return lines.join('\n');
+  }
+
+  function confirmDelete(label, text) {
+    return confirm(`Delete this ${label}?
+
+${text}
+
+This cannot be undone unless you reset the resume.`);
+  }
+
+  function renderSkill(skill, idx) {
+    return `<span class="skill-chip" data-skill-row="${idx}">
+      <span class="chip-text" contenteditable="true" data-skill-idx="${idx}">${escapeHtml(skill)}</span>
+      <button class="btn delete-icon delete-skill" type="button" data-skill-delete="${idx}" aria-label="Delete skill: ${escapeHtml(skill)}"><i class="fas fa-trash-can"></i></button>
+    </span>`;
+  }
+
+  function renderCert(cert, idx) {
+    return `<li class="cert-row">
+      <span class="cert-text" contenteditable="true" data-cert-idx="${idx}">${escapeHtml(cert)}</span>
+      <button class="btn delete-icon delete-cert" type="button" data-cert-delete="${idx}" aria-label="Delete certification: ${escapeHtml(cert)}"><i class="fas fa-trash-can"></i></button>
+    </li>`;
+  }
+
+  function renderBullets(bullets, expIdx) {
+    let html = `<ul class="exp-bullets" data-exp-bullets="${expIdx}">`;
+    bullets.forEach((bullet, bIdx) => {
+      html += `<li><div class="bullet-row">
+        <span class="bullet-text" contenteditable="true" data-exp="${expIdx}" data-bullet-idx="${bIdx}">${escapeHtml(bullet)}</span>
+        <button class="btn delete-icon delete-bullet" type="button" data-exp="${expIdx}" data-bullet-delete="${bIdx}" aria-label="Delete bullet"><i class="fas fa-trash-can"></i></button>
+      </div></li>`;
+    });
+    html += `</ul><div class="inline-actions"><button class="btn btn-mini btn-soft add-bullet-btn" type="button" data-exp-add="${expIdx}"><i class="fas fa-plus"></i> Add bullet</button></div>`;
+    return html;
+  }
+
+
+  function getInitials() {
+    return (resumeData.name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('') || 'AJ';
+  }
+
+  function renderProfilePhoto() {
+    const hasPhoto = Boolean(resumeData.profileImage);
+    const image = hasPhoto
+      ? `<img id="profileImagePreview" src="${resumeData.profileImage}" alt="Profile photo">`
+      : `<div class="profile-photo-placeholder"><strong>${escapeHtml(getInitials())}</strong><span>Upload Photo</span></div>`;
+    return `<div class="profile-photo-card" aria-label="Profile image upload area">
+      ${image}
+      <div class="photo-actions">
+        <label class="photo-upload-label" for="profilePhotoInput"><i class="fas fa-camera"></i> Photo</label>
+        <button class="photo-remove-btn" id="removePhotoBtn" type="button"><i class="fas fa-trash-can"></i> Remove</button>
+      </div>
+      <input class="photo-upload-input" id="profilePhotoInput" type="file" accept="image/*">
+    </div>`;
+  }
+
+  function renderContactPanel() {
+    return `<div class="section contact-panel">
+      <div class="section-title">Contact</div>
+      <ul class="contact-list">
+        <li><i class="fas fa-phone"></i><span contenteditable="true" id="editPhone">${escapeHtml(resumeData.phone)}</span></li>
+        <li><i class="fas fa-envelope"></i><span contenteditable="true" id="editEmail">${escapeHtml(resumeData.email)}</span></li>
+        <li><i class="fas fa-location-dot"></i><span contenteditable="true" id="editLocation">${escapeHtml(resumeData.location)}</span></li>
+      </ul>
+    </div>`;
+  }
+
+  function renderStandardTemplate() {
+    let html = `<div class="resume-body template-${currentTemplate}">`;
+    html += `<div class="resume-header">
+      <div class="name-title"><h1 contenteditable="true" id="editName">${escapeHtml(resumeData.name)}</h1></div>
+      <div class="headline" contenteditable="true" id="editHeadline">${escapeHtml(resumeData.headline || 'Security Professional')}</div>
+      <div class="contact-info">
+        <span><i class="fas fa-location-dot"></i><span contenteditable="true" id="editLocation">${escapeHtml(resumeData.location)}</span></span>
+        <span><i class="fas fa-phone"></i><span contenteditable="true" id="editPhone">${escapeHtml(resumeData.phone)}</span></span>
+        <span><i class="fas fa-envelope"></i><span contenteditable="true" id="editEmail">${escapeHtml(resumeData.email)}</span></span>
+      </div>
+    </div>`;
+    html += `<div class="section"><div class="section-title" contenteditable="true" id="sectionTitleSummary">${escapeHtml(resumeData.sectionTitles.summary)}</div><div class="summary-text" contenteditable="true" id="editSummary">${escapeHtml(resumeData.summary)}</div></div>`;
+    html += `<div class="section"><div class="section-title" contenteditable="true" id="sectionTitleSkills">${escapeHtml(resumeData.sectionTitles.skills)}</div><div class="skills-grid">${resumeData.skills.map(renderSkill).join('')}</div><div class="inline-actions"><button id="addSkillBtn" class="btn btn-mini btn-soft" type="button"><i class="fas fa-plus"></i> Add skill</button></div></div>`;
+    html += `<div class="section"><div class="section-title" contenteditable="true" id="sectionTitleCerts">${escapeHtml(resumeData.sectionTitles.certifications)}</div><ul class="certs-list">${resumeData.certifications.map(renderCert).join('')}</ul><div class="inline-actions"><button id="addCertBtn" class="btn btn-mini btn-soft" type="button"><i class="fas fa-plus"></i> Add certification</button></div></div>`;
+    html += renderExperienceSection();
+    html += `<div class="section"><div class="section-title" contenteditable="true" id="sectionTitleEdu">${escapeHtml(resumeData.sectionTitles.education)}</div><div class="education-text" contenteditable="true" id="editEducation" style="white-space:pre-line;">${escapeHtml(resumeData.education)}</div></div>`;
+    html += `</div>`;
+    return html;
+  }
+
+  function renderExperienceSection() {
+    let html = `<div class="section"><div class="section-title" contenteditable="true" id="sectionTitleExp">${escapeHtml(resumeData.sectionTitles.experience)}</div><div id="expList">`;
+    resumeData.experience.forEach((exp, idx) => {
+      html += `<article class="exp-item" data-exp-index="${idx}">
+        <div class="exp-header"><span class="exp-title" contenteditable="true" data-exp-title="${idx}">${escapeHtml(exp.title)}</span><span class="exp-date" contenteditable="true" data-exp-date="${idx}">${escapeHtml(exp.date)}</span></div>
+        <div><span class="exp-company" contenteditable="true" data-exp-company="${idx}">${escapeHtml(exp.company)}</span></div>
+        ${renderBullets(exp.bullets, idx)}
+      </article>`;
+    });
+    html += `</div><div class="inline-actions"><button id="addExpBtn" class="btn btn-mini btn-soft" type="button"><i class="fas fa-plus-circle"></i> Add position</button></div></div>`;
+    return html;
+  }
+
+  function renderModernTemplate() {
+    return `<div class="resume-body template-modern ${resumeData.profileImage ? 'has-photo' : ''}">
+      <div class="modern-top">
+        ${renderProfilePhoto()}
+        <div class="modern-heading">
+          <div class="name-title"><h1 contenteditable="true" id="editName">${escapeHtml(resumeData.name)}</h1></div>
+          <div class="headline" contenteditable="true" id="editHeadline">${escapeHtml(resumeData.headline || 'Security Professional')}</div>
+        </div>
+      </div>
+      <div class="modern-layout">
+        <aside class="modern-sidebar">
+          <div class="section"><div class="section-title" contenteditable="true" id="sectionTitleSummary">${escapeHtml(resumeData.sectionTitles.summary)}</div><div class="summary-text" contenteditable="true" id="editSummary">${escapeHtml(resumeData.summary)}</div></div>
+          ${renderContactPanel()}
+          <div class="section"><div class="section-title" contenteditable="true" id="sectionTitleSkills">${escapeHtml(resumeData.sectionTitles.skills)}</div><div class="skills-grid">${resumeData.skills.map(renderSkill).join('')}</div><div class="inline-actions"><button id="addSkillBtn" class="btn btn-mini btn-soft" type="button"><i class="fas fa-plus"></i> Add skill</button></div></div>
+          <div class="section"><div class="section-title" contenteditable="true" id="sectionTitleCerts">${escapeHtml(resumeData.sectionTitles.certifications)}</div><ul class="certs-list">${resumeData.certifications.map(renderCert).join('')}</ul><div class="inline-actions"><button id="addCertBtn" class="btn btn-mini btn-soft" type="button"><i class="fas fa-plus"></i> Add certification</button></div></div>
+        </aside>
+        <main class="modern-main">
+          ${renderExperienceSection()}
+          <div class="section"><div class="section-title" contenteditable="true" id="sectionTitleEdu">${escapeHtml(resumeData.sectionTitles.education)}</div><div class="education-text" contenteditable="true" id="editEducation" style="white-space:pre-line;">${escapeHtml(resumeData.education)}</div></div>
+        </main>
+      </div>
+    </div>`;
+  }
+
+
+  function renderResume() {
+    const container = $('#resumeContent');
+    container.innerHTML = currentTemplate === 'modern' ? renderModernTemplate() : renderStandardTemplate();
+    bindResumeEvents();
+    requestAnimationFrame(syncHeaderToResumeWidth);
+  }
+
+  function renderSmallQR() {
+    const qr = $('#qrcodeContainer');
+    if (!qr) return;
+    qr.innerHTML = '';
+    if (window.QRCode) { new QRCode(qr, { text: getPdfUrl(), width: 72, height: 72, colorDark: '#1e3c72', correctLevel: QRCode.CorrectLevel.H }); }
+    else { qr.innerHTML = '<span style="font-size:.72rem;color:#64748b;">QR loads online</span>'; }
+  }
+
+  function bindResumeEvents() {
+    const bind = (selector, handler) => $$(selector).forEach(el => el.addEventListener('blur', handler));
+    bind('#editName', e => { resumeData.name = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editHeadline', e => { resumeData.headline = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editLocation', e => { resumeData.location = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editPhone', e => { resumeData.phone = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editEmail', e => { resumeData.email = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editSummary', e => { resumeData.summary = e.target.innerText.trim(); saveToLocal(true); });
+    bind('#editEducation', e => { resumeData.education = e.target.innerText; saveToLocal(true); });
+
+    const titles = { sectionTitleSummary: 'summary', sectionTitleSkills: 'skills', sectionTitleCerts: 'certifications', sectionTitleExp: 'experience', sectionTitleEdu: 'education' };
+    Object.entries(titles).forEach(([id, key]) => document.getElementById(id)?.addEventListener('blur', e => { resumeData.sectionTitles[key] = e.target.innerText.trim(); saveToLocal(true); }));
+
+    $$('[data-skill-idx]').forEach(el => el.addEventListener('blur', e => { const i = +el.dataset.skillIdx; resumeData.skills[i] = e.target.innerText.trim(); saveToLocal(true); }));
+    $$('[data-cert-idx]').forEach(el => el.addEventListener('blur', e => { const i = +el.dataset.certIdx; resumeData.certifications[i] = e.target.innerText.trim(); saveToLocal(true); }));
+    $$('[data-exp-title]').forEach(el => el.addEventListener('blur', e => { resumeData.experience[+el.dataset.expTitle].title = e.target.innerText.trim(); saveToLocal(true); }));
+    $$('[data-exp-date]').forEach(el => el.addEventListener('blur', e => { resumeData.experience[+el.dataset.expDate].date = e.target.innerText.trim(); saveToLocal(true); }));
+    $$('[data-exp-company]').forEach(el => el.addEventListener('blur', e => { resumeData.experience[+el.dataset.expCompany].company = e.target.innerText.trim(); saveToLocal(true); }));
+    $$('[data-bullet-idx]').forEach(el => el.addEventListener('blur', e => { resumeData.experience[+el.dataset.exp].bullets[+el.dataset.bulletIdx] = e.target.innerText.trim(); saveToLocal(true); }));
+
+    $$('.delete-skill').forEach(btn => btn.addEventListener('click', () => { const i = +btn.dataset.skillDelete; if (confirmDelete('skill', resumeData.skills[i])) { resumeData.skills.splice(i, 1); saveToLocal(); renderResume(); } }));
+    $$('.delete-cert').forEach(btn => btn.addEventListener('click', () => { const i = +btn.dataset.certDelete; if (confirmDelete('certification', resumeData.certifications[i])) { resumeData.certifications.splice(i, 1); saveToLocal(); renderResume(); } }));
+    $$('.delete-bullet').forEach(btn => btn.addEventListener('click', () => { const exp = +btn.dataset.exp; const i = +btn.dataset.bulletDelete; if (confirmDelete('bullet', resumeData.experience[exp].bullets[i])) { resumeData.experience[exp].bullets.splice(i, 1); saveToLocal(); renderResume(); } }));
+
+    $$('.add-bullet-btn').forEach(btn => btn.addEventListener('click', () => openModal('bullet', +btn.dataset.expAdd)));
+    $('#addSkillBtn')?.addEventListener('click', () => openModal('skill'));
+    $('#addCertBtn')?.addEventListener('click', () => openModal('cert'));
+    $('#addExpBtn')?.addEventListener('click', () => openModal('exp'));
+
+    const photoInput = $('#profilePhotoInput');
+    if (photoInput) {
+      photoInput.addEventListener('change', async event => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          showToast('Please choose an image file');
+          return;
+        }
+
+        try {
+          showToast('Resizing photo to fit frame...');
+          resumeData.profileImage = await resizeImageToResumeFrame(file);
+          saveToLocal(true);
+          renderResume();
+    bindCoreToolbarButtons();
+    bindCoreToolbarFallbackDelegation();
+    bindCoreToolbarFallbackDelegation();
+          showToast('Profile photo resized and added');
+        } catch (error) {
+          showToast('Photo resize failed. Try another image.');
+        }
+      });
+    }
+
+    $('#removePhotoBtn')?.addEventListener('click', () => {
+      if (confirm('Remove the profile photo from this template?')) {
+        resumeData.profileImage = '';
+        saveToLocal(true);
+        renderResume();
+        showToast('Profile photo removed');
+      }
+    });
+
+    $('#emailBtn')?.addEventListener('click', emailPdfLink);
+    $('#plainTextBtn')?.addEventListener('click', () => safeCopy(generatePlainText(), 'Plain text copied'));
+    $('#smsBtn')?.addEventListener('click', smsPdfLink);
+    $('#copyLinkBtn')?.addEventListener('click', () => safeCopy(getPdfUrl(), 'Resume PDF link copied'));
+  }
+
+
+  function resizeImageToResumeFrame(file) {
+    const FRAME_WIDTH = 900;
+    const FRAME_HEIGHT = 1004;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Could not read image file.'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Could not load image.'));
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = FRAME_WIDTH;
+          canvas.height = FRAME_HEIGHT;
+          const ctx = canvas.getContext('2d');
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+
+          const imageRatio = img.width / img.height;
+          const frameRatio = FRAME_WIDTH / FRAME_HEIGHT;
+
+          let drawWidth;
+          let drawHeight;
+          let drawX;
+          let drawY;
+
+          // Fill the frame edge-to-edge while preserving natural proportions.
+          // For portrait/headshot uploads this avoids distortion and keeps the head/shoulders centered.
+          if (imageRatio > frameRatio) {
+            drawHeight = FRAME_HEIGHT;
+            drawWidth = drawHeight * imageRatio;
+            drawX = (FRAME_WIDTH - drawWidth) / 2;
+            drawY = 0;
+          } else {
+            drawWidth = FRAME_WIDTH;
+            drawHeight = drawWidth / imageRatio;
+            drawX = 0;
+            // Slightly lower than pure center so shoulders remain visible.
+            drawY = (FRAME_HEIGHT - drawHeight) * 0.56;
+          }
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openModal(mode, expIndex = null) {
+    modalMode = mode;
+    modalExpIndex = expIndex;
+    const modal = $('#addModal');
+    const title = $('#modalTitle');
+    const help = $('#modalHelp');
+    const f1 = $('#modalField1');
+    const f2 = $('#modalField2');
+    const f3 = $('#modalField3');
+    [f1, f2, f3].forEach(f => { f.value = ''; f.style.display = 'block'; });
+    if (mode === 'skill') { title.textContent = 'Add skill'; help.textContent = 'Add one skill badge to the resume.'; f1.placeholder = 'Skill name'; f2.style.display = 'none'; f3.style.display = 'none'; }
+    if (mode === 'cert') { title.textContent = 'Add certification'; help.textContent = 'Add one certification or license.'; f1.placeholder = 'Certification or license'; f2.style.display = 'none'; f3.style.display = 'none'; }
+    if (mode === 'bullet') { title.textContent = 'Add bullet'; help.textContent = 'Add one achievement bullet to this role.'; f1.placeholder = 'Bullet point'; f2.style.display = 'none'; f3.style.display = 'none'; }
+    if (mode === 'exp') { title.textContent = 'Add position'; help.textContent = 'Add a new work experience entry.'; f1.placeholder = 'Job title'; f2.placeholder = 'Company and location'; f3.placeholder = 'First bullet point'; }
+    modal.classList.add('show');
+    f1.focus();
+  }
+
+  function closeModal() { $('#addModal').classList.remove('show'); modalMode = null; modalExpIndex = null; }
+
+  function confirmModal() {
+    const v1 = $('#modalField1').value.trim();
+    const v2 = $('#modalField2').value.trim();
+    const v3 = $('#modalField3').value.trim();
+    if (!v1) return showToast('Enter a value first');
+    if (modalMode === 'skill') resumeData.skills.push(v1);
+    if (modalMode === 'cert') resumeData.certifications.push(v1);
+    if (modalMode === 'bullet' && modalExpIndex !== null) resumeData.experience[modalExpIndex].bullets.push(v1);
+    if (modalMode === 'exp') {
+      if (!v2) return showToast('Company and location required');
+      resumeData.experience.push({ title: v1, company: v2, date: 'Current', bullets: [v3 || 'Edit this bullet point.'] });
+    }
+    closeModal();
+    saveToLocal();
+    renderResume();
+  }
+
+
+  function isHostedForQr() {
+    return location.protocol === 'http:' || location.protocol === 'https:';
+  }
+
+  function getQrShareMessage(link) {
+    if (isHostedForQr()) {
+      return {
+        className: 'qr-status',
+        text: 'QR is ready. Scanning this code will open the resume PDF from this hosted website.'
+      };
+    }
+
+    return {
+      className: 'qr-status warning',
+      text: 'Local file warning: QR codes cannot reliably share a file opened from your computer. Upload this folder to Render/GitHub/Vercel first, then generate the QR from the live website.'
+    };
+  }
+
+  function updateQrActionLinks(link) {
+    const openLink = $('#openQrResumeLink');
+    const downloadLink = $('#downloadQrResumeLink');
+    const fullText = $('#qrFullLinkText');
+    const status = $('#qrShareStatus');
+
+    if (openLink) {
+      openLink.href = link;
+      openLink.title = 'Open the resume PDF in a new tab';
+      openLink.setAttribute('aria-label', 'Open resume PDF');
+    }
+
+    if (downloadLink) {
+      downloadLink.href = link;
+      downloadLink.download = PDF_FILENAME;
+      downloadLink.title = 'Download the resume PDF';
+      downloadLink.setAttribute('aria-label', 'Download resume PDF');
+    }
+
+    if (fullText) fullText.textContent = link;
+
+    if (status) {
+      const message = getQrShareMessage(link);
+      status.className = message.className;
+      status.textContent = message.text;
+    }
+  }
+
+  async function nativeShareQrResume() {
+    const link = getPdfUrl();
+    if (navigator.share && isHostedForQr()) {
+      try {
+        await navigator.share({
+          title: resumeData?.name ? `${resumeData.name} Resume` : 'Resume',
+          text: 'Open the resume PDF here:',
+          url: link
+        });
+        showToast('Resume PDF link shared');
+        return;
+      } catch (error) {
+        // Ignore user-cancelled native share.
+      }
+    }
+
+    safeCopy(link, isHostedForQr() ? 'Resume PDF link copied' : 'Local PDF path copied. Host online for QR scanning.');
+  }
+
+  function showPdfQRModal() {
+    const modal = $('#qrModal');
+    const box = $('#hdQRCode');
+    const link = getPdfUrl();
+
+    if (!modal || !box) return;
+
+    box.innerHTML = '';
+    $('#pdfLinkPreview').textContent = isHostedForQr()
+      ? 'Scan this QR code to open the hosted resume PDF.'
+      : 'Host this folder online before scanning. Local QR links will not work reliably on other devices.';
+
+    updateQrActionLinks(link);
+
+    const pill = $('#qrDestinationPill');
+    if (pill) {
+      pill.innerHTML = isHostedForQr()
+        ? '<i class="fas fa-file-pdf"></i> QR opens hosted resume PDF'
+        : '<i class="fas fa-triangle-exclamation"></i> Host first for QR scanning';
+    }
+
+    if (window.QRCode) {
+      new QRCode(box, {
+        text: link,
+        width: 270,
+        height: 270,
+        colorDark: '#0f2b4f',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } else {
+      box.innerHTML = '<p>QR library is unavailable. Use Copy or Open PDF below.</p>';
+    }
+
+    modal.classList.add('show');
+  }
+
+  async function exportPDF(event) {
+    syncTitlesFromDom();
+    saveToLocal(true);
+
+    const jsPDFCtor = window.jspdf?.jsPDF || window.jsPDF;
+    const librariesReady = Boolean(window.html2canvas && jsPDFCtor);
+
+    // If PDF generation libraries are not ready, allow the native anchor download to run.
+    if (!librariesReady) {
+      showToast('PDF generator unavailable. Downloading included PDF.');
+      return true;
+    }
+
+    if (event) event.preventDefault();
+
+    let stage = null;
+
+    try {
+      showToast('Preparing exact PDF...');
+      stage = createExactPdfExportStage();
+      document.body.classList.add('pdf-capture-mode', 'pdf-export-working');
+
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise(resolve => setTimeout(resolve, 240));
+
+      const captureTarget = stage.querySelector('.resume-card') || stage;
+      const canvas = await withTimeout(
+        html2canvas(captureTarget, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          width: captureTarget.scrollWidth,
+          height: captureTarget.scrollHeight,
+          windowWidth: Math.max(captureTarget.scrollWidth, 816),
+          windowHeight: Math.max(captureTarget.scrollHeight, 1056)
+        }),
+        25000,
+        'PDF capture timed out'
+      );
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        throw new Error('PDF capture was empty');
+      }
+
+      const pdf = new jsPDFCtor('p', 'in', 'letter');
+      const pageWidth = 8.5;
+      const pageHeight = 11;
+      const margin = 0;
+      const imgWidth = pageWidth;
+      const pxPerIn = canvas.width / imgWidth;
+      const pageSliceHeightPx = Math.floor(pageHeight * pxPerIn);
+
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d');
+      pageCanvas.width = canvas.width;
+
+      let y = 0;
+      let pageIndex = 0;
+
+      while (y < canvas.height) {
+        const sliceHeight = Math.min(pageSliceHeightPx, canvas.height - y);
+        pageCanvas.height = sliceHeight;
+
+        pageCtx.fillStyle = '#ffffff';
+        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        pageCtx.drawImage(canvas, 0, y, canvas.width, sliceHeight, 0, 0, pageCanvas.width, sliceHeight);
+
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
+        const pageImgHeight = (sliceHeight * imgWidth) / canvas.width;
+
+        if (pageIndex > 0) pdf.addPage();
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+        pdf.addImage(pageImgData, 'JPEG', margin, margin, imgWidth, pageImgHeight, undefined, 'FAST');
+
+        y += sliceHeight;
+        pageIndex += 1;
+      }
+
+      pdf.save(PDF_FILENAME);
+      showToast('PDF exported');
+      return false;
+    } catch (error) {
+      console.error('Exact PDF export failed:', error);
+      showToast('Generator failed. Downloading included PDF.');
+      downloadIncludedPdfFallback();
+      return false;
+    } finally {
+      document.body.classList.remove('pdf-capture-mode', 'pdf-export-working');
+      if (stage && stage.parentNode) stage.parentNode.removeChild(stage);
+    }
+  }
+
+  function emailPdfLink() {
+    const subject = encodeURIComponent(`${resumeData.name} - Resume PDF`);
+    const body = encodeURIComponent(`Please download my resume PDF here:
+${getPdfUrl()}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
+
+  function smsPdfLink() {
+    window.location.href = `sms:?body=${encodeURIComponent('Download my resume PDF: ' + getPdfUrl())}`;
+  }
+
+  function resetToOriginal() {
+    if (confirm('Reset all resume edits to the original base file?')) {
+      resumeData = JSON.parse(JSON.stringify(ORIGINAL_DATA));
+      normalizeData();
+      localStorage.removeItem(STORAGE_KEY);
+      saveToLocal(true);
+      renderResume();
+      showToast('Resume reset to base file');
+    }
+  }
+
+
+
+  function syncHeaderToResumeWidth() {
+    const root = document.documentElement;
+    const card = document.querySelector('.resume-card');
+    const header = document.querySelector('.top-command-bar');
+    if (!card || !header) return;
+
+    const cardRect = card.getBoundingClientRect();
+    const width = Math.round(cardRect.width);
+    const rightGap = Math.max(16, Math.round(window.innerWidth - cardRect.right + 8));
+
+    root.style.setProperty('--measured-resume-width', `${width}px`);
+    root.style.setProperty('--measured-arrow-right', `${rightGap}px`);
+  }
+
+  function bindMeasuredHeaderAlignment() {
+    syncHeaderToResumeWidth();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(syncHeaderToResumeWidth, 80);
+    });
+
+    window.addEventListener('orientationchange', () => {
+      window.setTimeout(syncHeaderToResumeWidth, 160);
+    });
+
+    if ('ResizeObserver' in window) {
+      const card = document.querySelector('.resume-card');
+      if (card) {
+        const observer = new ResizeObserver(syncHeaderToResumeWidth);
+        observer.observe(card);
+      }
+    }
+  }
+
+  function bindScrollHeaderBehavior() {
+    const header = document.querySelector('.top-command-bar');
+    const upArrow = document.getElementById('floatingUpArrow');
+    if (!header || !upArrow) return;
+
+    let lastY = window.scrollY || 0;
+    let ticking = false;
+    const minDelta = 8;
+    const hideAfter = 120;
+
+    function updateScrollUI() {
+      const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+      const delta = currentY - lastY;
+
+      if (currentY > 220) {
+        upArrow.classList.add('show');
+      } else {
+        upArrow.classList.remove('show');
+      }
+
+      if (Math.abs(delta) > minDelta) {
+        if (delta > 0 && currentY > hideAfter) {
+          header.classList.add('header-hidden');
+        } else if (delta < 0) {
+          header.classList.remove('header-hidden');
+        }
+        lastY = currentY;
+      }
+
+      if (currentY <= 20) {
+        header.classList.remove('header-hidden');
+      }
+
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrollUI);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    upArrow.addEventListener('click', () => {
+      header.classList.remove('header-hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+
+  function bindClick(id, handler) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+
+    if (el.dataset.bound === 'true') return true;
+    el.dataset.bound = 'true';
+
+    el.addEventListener('click', event => {
+      try {
+        handler(event, el);
+      } catch (error) {
+        console.error(`Button ${id} failed:`, error);
+        showToast(`${id} action failed`);
+      }
+    });
+
+    return true;
+  }
+
+  function bindChange(id, handler) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+
+    if (el.dataset.bound === 'true') return true;
+    el.dataset.bound = 'true';
+
+    el.addEventListener('change', event => {
+      try {
+        handler(event, el);
+      } catch (error) {
+        console.error(`Control ${id} failed:`, error);
+        showToast(`${id} action failed`);
+      }
+    });
+
+    return true;
+  }
+
+  function verifyButtonBindings() {
+    const expected = [
+      'templateSwitcher',
+      'saveResumeBtn',
+      'downloadPdfBtn',
+      'shareQrBtn',
+      'resetDataBtn',
+      'emailBtnTop',
+      'plainTextBtnTop',
+      'smsBtnTop',
+      'copyPdfLinkBtnTop',
+      'modalCancel',
+      'modalConfirm',
+      'closeQrModal',
+      'copyModalPdfLink',
+      'copyQrFullLink',
+      'nativeShareQrLink'
+    ];
+
+    const missing = expected.filter(id => !document.getElementById(id));
+    if (missing.length) console.warn('Missing expected controls:', missing);
+    return missing;
+  }
+
+
+
+  function copyTextReliable(text, successMessage = 'Copied') {
+    const value = String(text || '');
+
+    if (!value.trim()) {
+      showToast('Nothing to copy');
+      return false;
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(value)
+        .then(() => showToast(successMessage))
+        .catch(() => fallbackCopyText(value, successMessage));
+      return true;
+    }
+
+    return fallbackCopyText(value, successMessage);
+  }
+
+  function fallbackCopyText(text, successMessage = 'Copied') {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (error) {
+      ok = false;
+    }
+
+    document.body.removeChild(textarea);
+
+    if (ok) {
+      showToast(successMessage);
+      return true;
+    }
+
+    window.prompt('Copy this text:', text);
+    showToast('Copy box opened');
+    return false;
+  }
+
+  function saveResumeNow() {
+    try {
+      if (typeof syncResumeDataFromDom === 'function') {
+        syncResumeDataFromDom();
+      } else if (typeof syncTitlesFromDom === 'function') {
+        syncTitlesFromDom();
+      }
+
+      const payload = {
+        resumeData,
+        currentTemplate,
+        savedAt: new Date().toISOString(),
+        buildId: 'core-buttons-fixed-v46'
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(resumeData));
+      localStorage.setItem('resumeEditorTemplate', currentTemplate);
+      localStorage.setItem('resumeEditorBackup', JSON.stringify(payload));
+
+      showToast('Saved successfully');
+      return true;
+    } catch (error) {
+      console.error('Save failed:', error);
+      showToast('Save failed. Browser storage may be blocked.');
+      return false;
+    }
+  }
+
+  function downloadPdfDirect() {
+    const link = document.createElement('a');
+    link.href = PDF_FILENAME;
+    link.download = PDF_FILENAME;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('PDF download started');
+  }
+
+  function bindCoreToolbarButtons() {
+    const saveBtn = document.getElementById('saveResumeBtn');
+    const exportBtn = document.getElementById('downloadPdfBtn');
+    const plainTextBtn = document.getElementById('plainTextBtnTop');
+    const copyLinkBtn = document.getElementById('copyPdfLinkBtnTop');
+
+    if (saveBtn) {
+      saveBtn.onclick = event => {
+        event.preventDefault();
+        saveResumeNow();
+      };
+      saveBtn.dataset.coreFixed = 'true';
+    }
+
+    if (exportBtn) {
+      // Keep href/download on the anchor so the browser always has a native fallback.
+      exportBtn.setAttribute('href', PDF_FILENAME);
+      exportBtn.setAttribute('download', PDF_FILENAME);
+      exportBtn.onclick = event => {
+        // Direct controlled download. This avoids broken PDF generator paths.
+        event.preventDefault();
+        downloadPdfDirect();
+      };
+      exportBtn.dataset.coreFixed = 'true';
+    }
+
+    if (plainTextBtn) {
+      plainTextBtn.onclick = event => {
+        event.preventDefault();
+        const text = typeof generatePlainText === 'function' ? generatePlainText() : document.getElementById('resumeContent')?.innerText || '';
+        copyTextReliable(text, 'Plain text copied');
+      };
+      plainTextBtn.dataset.coreFixed = 'true';
+    }
+
+    if (copyLinkBtn) {
+      copyLinkBtn.onclick = event => {
+        event.preventDefault();
+        const link = typeof getPdfUrl === 'function' ? getPdfUrl() : (new URL(PDF_FILENAME, window.location.href)).href;
+        copyTextReliable(link, 'Resume PDF link copied');
+      };
+      copyLinkBtn.dataset.coreFixed = 'true';
+    }
+  }
+
+
+
+  function handleCoreToolbarClickById(id, event) {
+    if (!id) return false;
+
+    if (id === 'saveResumeBtn') {
+      if (event) event.preventDefault();
+      saveResumeNow();
+      return true;
+    }
+
+    if (id === 'downloadPdfBtn') {
+      if (event) event.preventDefault();
+      downloadPdfDirect();
+      return true;
+    }
+
+    if (id === 'plainTextBtnTop') {
+      if (event) event.preventDefault();
+      const text = typeof generatePlainText === 'function'
+        ? generatePlainText()
+        : (document.getElementById('resumeContent')?.innerText || '');
+      copyTextReliable(text, 'Plain text copied');
+      return true;
+    }
+
+    if (id === 'copyPdfLinkBtnTop') {
+      if (event) event.preventDefault();
+      const link = typeof getPdfUrl === 'function'
+        ? getPdfUrl()
+        : (new URL(PDF_FILENAME, window.location.href)).href;
+      copyTextReliable(link, 'Resume PDF link copied');
+      return true;
+    }
+
+    return false;
+  }
+
+  function bindCoreToolbarFallbackDelegation() {
+    if (document.body.dataset.coreFallbackBound === 'true') return;
+    document.body.dataset.coreFallbackBound = 'true';
+
+    document.addEventListener('click', event => {
+      const target = event.target && event.target.closest
+        ? event.target.closest('#saveResumeBtn, #downloadPdfBtn, #plainTextBtnTop, #copyPdfLinkBtnTop')
+        : null;
+
+      if (!target) return;
+      handleCoreToolbarClickById(target.id, event);
+    }, true);
+
+    ['saveResumeBtn', 'downloadPdfBtn', 'plainTextBtnTop', 'copyPdfLinkBtnTop'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.setAttribute('role', el.tagName.toLowerCase() === 'a' ? 'link' : 'button');
+      el.setAttribute('tabindex', '0');
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'pointer';
+    });
+  }
+
+
+
+  function keepToolbarClickableSafeguard() {
+    const header = document.querySelector('.top-command-bar');
+    if (!header) return;
+
+    const reveal = () => {
+      header.classList.add('at-top');
+      header.classList.remove('header-hidden');
+      header.style.pointerEvents = 'auto';
+    };
+
+    document.addEventListener('mousemove', event => {
+      if (event.clientY <= 90) reveal();
+    }, { passive: true });
+
+    document.addEventListener('focusin', event => {
+      if (event.target && event.target.closest && event.target.closest('.top-command-bar')) reveal();
+    });
+  }
+
+
+  function bindGlobalEvents() {
+    bindChange('templateSwitcher', event => {
+      currentTemplate = event.target.value;
+      saveToLocal(true);
+      renderResume();
+      showToast('Template changed');
+    });
+
+    bindClick('saveResumeBtn', event => {
+      event.preventDefault();
+      saveToLocal(false);
+    });
+
+    bindClick('downloadPdfBtn', event => {
+      exportPDF(event);
+    });
+
+    bindClick('shareQrBtn', event => {
+      event.preventDefault();
+      showPdfQRModal();
+    });
+
+    bindClick('resetDataBtn', event => {
+      event.preventDefault();
+      resetToOriginal();
+    });
+
+    bindClick('emailBtnTop', event => {
+      event.preventDefault();
+      emailPdfLink();
+    });
+
+    bindClick('plainTextBtnTop', event => {
+      event.preventDefault();
+      safeCopy(generatePlainText(), 'Plain text copied');
+    });
+
+    bindClick('smsBtnTop', event => {
+      event.preventDefault();
+      smsPdfLink();
+    });
+
+    bindClick('copyPdfLinkBtnTop', event => {
+      event.preventDefault();
+      safeCopy(getPdfUrl(), 'Resume PDF link copied');
+    });
+
+    bindClick('modalCancel', event => {
+      event.preventDefault();
+      closeModal();
+    });
+
+    bindClick('modalConfirm', event => {
+      event.preventDefault();
+      confirmModal();
+    });
+
+    bindClick('closeQrModal', event => {
+      event.preventDefault();
+      $('#qrModal')?.classList.remove('show');
+    });
+
+    bindClick('copyModalPdfLink', event => {
+      event.preventDefault();
+      safeCopy(getPdfUrl(), 'Resume PDF link copied');
+    });
+
+    bindClick('copyQrFullLink', event => {
+      event.preventDefault();
+      safeCopy(getPdfUrl(), 'Resume PDF link copied');
+    });
+
+    bindClick('nativeShareQrLink', event => {
+      event.preventDefault();
+      nativeShareQrResume();
+    });
+
+    $$('.modal').forEach(modal => {
+      if (modal.dataset.backdropBound === 'true') return;
+      modal.dataset.backdropBound = 'true';
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+
+    if (!document.body.dataset.keyboardBound) {
+      document.body.dataset.keyboardBound = 'true';
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          $$('.modal').forEach(m => m.classList.remove('show'));
+        }
+      });
+
+      let autosaveTimer;
+      document.addEventListener('input', e => {
+        if (!e.target || !e.target.closest || !e.target.closest('#resumeContent')) return;
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(() => saveToLocal(true), 900);
+      });
+
+      document.addEventListener('blur', e => {
+        if (!e.target || !e.target.closest || !e.target.closest('#resumeContent')) return;
+        saveToLocal(true);
+      }, true);
+
+      window.addEventListener('beforeunload', () => saveToLocal(true));
+    }
+
+    verifyButtonBindings();
+  }
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    const swCode = `const CACHE='resume-editor-v3';self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./${PDF_FILENAME}']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadFromLocal();
+    const templateSwitcher = $('#templateSwitcher');
+    if (templateSwitcher) templateSwitcher.value = currentTemplate;
+    bindGlobalEvents();
+    bindCoreToolbarButtons();
+    bindScrollHeaderBehavior();
+    keepToolbarClickableSafeguard();
+    renderResume();
+    bindMeasuredHeaderAlignment();
+    $('#pdfStatus').innerHTML = '<i class="fas fa-circle-check"></i> PDF QR ready';
+  });
+</script>
+</body>
+</html>
