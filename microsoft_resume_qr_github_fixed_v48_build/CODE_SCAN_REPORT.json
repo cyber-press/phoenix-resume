@@ -1,0 +1,198 @@
+{
+  "build": "code-scanned-v39",
+  "source_build": "pdf-export-fixed-v38",
+  "before": {
+    "js_syntax_before": {
+      "ok": true,
+      "stderr": ""
+    },
+    "duplicate_ids": [
+      {
+        "id": "editPhone",
+        "count": 2
+      },
+      {
+        "id": "editEmail",
+        "count": 2
+      },
+      {
+        "id": "editLocation",
+        "count": 2
+      },
+      {
+        "id": "editName",
+        "count": 2
+      },
+      {
+        "id": "editHeadline",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleSummary",
+        "count": 2
+      },
+      {
+        "id": "editSummary",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleSkills",
+        "count": 2
+      },
+      {
+        "id": "addSkillBtn",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleCerts",
+        "count": 2
+      },
+      {
+        "id": "addCertBtn",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleEdu",
+        "count": 2
+      },
+      {
+        "id": "editEducation",
+        "count": 2
+      }
+    ],
+    "duplicate_functions": [],
+    "duplicate_event_bindings": [],
+    "missing_references": [
+      "handler"
+    ],
+    "fixes_applied": []
+  },
+  "after": {
+    "js_syntax_ok": true,
+    "js_syntax_stderr": "",
+    "duplicate_ids": [
+      {
+        "id": "editPhone",
+        "count": 2
+      },
+      {
+        "id": "editEmail",
+        "count": 2
+      },
+      {
+        "id": "editLocation",
+        "count": 2
+      },
+      {
+        "id": "editName",
+        "count": 2
+      },
+      {
+        "id": "editHeadline",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleSummary",
+        "count": 2
+      },
+      {
+        "id": "editSummary",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleSkills",
+        "count": 2
+      },
+      {
+        "id": "addSkillBtn",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleCerts",
+        "count": 2
+      },
+      {
+        "id": "addCertBtn",
+        "count": 2
+      },
+      {
+        "id": "sectionTitleEdu",
+        "count": 2
+      },
+      {
+        "id": "editEducation",
+        "count": 2
+      }
+    ],
+    "duplicate_functions": [],
+    "duplicate_event_bindings": [],
+    "function_count": 36,
+    "id_count": 59,
+    "event_binding_count": 20
+  },
+  "v40_pdf_capture_css": {
+    "applied": true,
+    "summary": "Applied final PDF capture-mode CSS cleanup provided by user.",
+    "js_syntax_ok": true,
+    "js_syntax_stderr": ""
+  },
+  "v41_pdf_download_reliable": {
+    "js_syntax_ok": true,
+    "summary": "Export PDF is now an anchor with native download fallback. JS prevents default only when PDF libraries are ready for exact generation."
+  },
+  "v42_qr_hardened": {
+    "js_syntax_ok": true,
+    "summary": "QR now encodes absolute hosted URL to the PDF; local file warning and open/download/copy/share actions added.",
+    "syntax_patch": "Restored async exportPDF function wrapper after QR hardening replacement."
+  },
+  "v43_qr_enhanced": {
+    "js_syntax_ok": true,
+    "summary": "Renamed toolbar QR action to QR and enhanced modal actions/open/download/copy/share with hosted PDF URL."
+  },
+  "v44_save_fixed": {
+    "js_syntax_ok": true,
+    "summary": "Save button now syncs DOM fields, saves to localStorage, stores template and backup, and includes autosave."
+  },
+  "v45_buttons_verified": {
+    "js_syntax_ok": true,
+    "fixes_applied": [
+      "Added safe bindClick/bindChange helpers.",
+      "Replaced bindGlobalEvents with verified bindings for all toolbar/modal controls."
+    ],
+    "missing_expected_controls": [
+      "copyQrFullLink",
+      "nativeShareQrLink"
+    ],
+    "expected_not_bound": [],
+    "duplicate_functions_after": []
+  },
+  "v46_core_buttons_fixed": {
+    "build": "core-buttons-fixed-v46",
+    "js_syntax_ok": true,
+    "js_syntax_stderr": "",
+    "fixed_buttons": [
+      "saveResumeBtn",
+      "downloadPdfBtn",
+      "plainTextBtnTop",
+      "copyPdfLinkBtnTop"
+    ],
+    "strategy": "Direct onclick overrides for the four reported broken buttons; Export PDF is direct file download; clipboard uses fallback."
+  },
+  "v47_clickable_buttons": {
+    "build": "clickable-buttons-v47",
+    "js_syntax_ok": true,
+    "js_syntax_stderr": "",
+    "fixed_buttons": [
+      "saveResumeBtn",
+      "downloadPdfBtn",
+      "plainTextBtnTop",
+      "copyPdfLinkBtnTop"
+    ],
+    "strategy": "Forced pointer events + z-index + document-level capture click delegation + toolbar visibility safeguard."
+  },
+  "v48_qr_github_fixed": {
+    "js_syntax_ok": true,
+    "js_syntax_stderr": "",
+    "summary": "QR now uses current hosted folder path for PDF target; added GitHub Pages root warning, 404.html and .nojekyll."
+  }
+}
